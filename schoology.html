@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Command Master — Spanish Imperative Engine</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3450;
+    --accent: #7c6af7;
+    --accent2: #f76a8a;
+    --accent3: #6af7c0;
+    --accent4: #f7c46a;
+    --text: #e8eaf6;
+    --muted: #8b90b0;
+    --stem-color: #7c6af7;
+    --ending-color: #f76a8a;
+    --pronoun-color: #6af7c0;
+    --no-color: #f7c46a;
+    --spell-color: #f7a24a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  header h1 {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  .quick-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  .example-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 0.73rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+    font-weight: 600;
+  }
+
+  .example-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(124,106,247,0.08);
+  }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 680px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+  }
+
+  .card-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  /* Infinitive Input */
+  .infinitive-wrap {
+    position: relative;
+  }
+
+  #infinitive-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 0.04em;
+  }
+
+  #infinitive-input:focus {
+    border-color: var(--accent);
+  }
+
+  #infinitive-input::placeholder {
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  /* Toggle Switches */
+  .toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 4px;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .toggle-label {
+    font-size: 0.82rem;
+    color: var(--muted);
+    min-width: 70px;
+  }
+
+  .toggle-pill {
+    display: flex;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .toggle-pill button {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .toggle-pill button.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* Pronoun Checklist */
+  .pronoun-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .pronoun-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.18s;
+    user-select: none;
+  }
+
+  .pronoun-chip:hover {
+    border-color: var(--accent);
+  }
+
+  .pronoun-chip.selected {
+    border-color: var(--pronoun-color);
+    background: rgba(106, 247, 192, 0.08);
+  }
+
+  .pronoun-chip input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--pronoun-color);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .pronoun-chip span {
+    font-size: 0.8rem;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .pronoun-chip span strong {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--pronoun-color);
+  }
+
+  /* Output Area */
+  .output-card {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px 24px;
+  }
+
+  .command-display {
+    text-align: center;
+    padding: 28px 20px 24px;
+    background: var(--surface2);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+  }
+
+  .command-text {
+    font-size: clamp(2rem, 8vw, 3.6rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .part-no {
+    color: var(--no-color);
+    margin-right: 8px;
+  }
+
+  .part-stem {
+    color: var(--stem-color);
+  }
+
+  .part-ending {
+    color: var(--ending-color);
+  }
+
+  .part-pronoun {
+    color: var(--pronoun-color);
+  }
+
+  .command-label {
+    margin-top: 10px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Logic Path */
+  .logic-path {
+    background: var(--bg);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+  }
+
+  .logic-path-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .logic-step {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .logic-step:last-child {
+    margin-bottom: 0;
+  }
+
+  .step-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1px 7px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: var(--accent2);
+    white-space: nowrap;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Spelling Alert */
+  .spell-alert {
+    background: rgba(247, 162, 74, 0.10);
+    border: 1px solid var(--spell-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 0.82rem;
+    color: var(--spell-color);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .spell-alert-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--muted);
+    font-size: 1rem;
+    padding: 20px 0;
+  }
+
+  .error-msg {
+    color: var(--accent2);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  /* Animate output */
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in {
+    animation: fadeSlideIn 0.25s ease forwards;
+  }
+
+  .build-btn {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent), #a06af7);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  .build-btn:hover { opacity: 0.9; }
+  .build-btn:active { transform: scale(0.98); }
+
+  .tag {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent4);
+    vertical-align: middle;
+    margin: 0 2px;
+  }
+
+  .left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .pronouns-card { height: auto; }
+
+  /* Toast notification */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--accent3);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 0.82rem;
+    color: var(--accent3);
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+    max-width: 90vw;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ Command Master</h1>
+  <p>Spanish Imperative Logic Engine — 100% Offline, Zero Databases</p>
+  <div class="quick-examples">
+    <span class="example-pill" data-verb="hablar">hablar</span>
+    <span class="example-pill" data-verb="comer">comer</span>
+    <span class="example-pill" data-verb="vivir">vivir</span>
+    <span class="example-pill" data-verb="hacer">hacer</span>
+    <span class="example-pill" data-verb="ir">ir</span>
+    <span class="example-pill" data-verb="tener">tener</span>
+    <span class="example-pill" data-verb="pedir">pedir</span>
+    <span class="example-pill" data-verb="dormir">dormir</span>
+    <span class="example-pill" data-verb="volver">volver</span>
+    <span class="example-pill" data-verb="ser">ser</span>
+    <span class="example-pill" data-verb="estar">estar</span>
+    <span class="example-pill" data-verb="decir">decir</span>
+    <span class="example-pill" data-verb="sentir">sentir</span>
+    <span class="example-pill" data-verb="traer">traer</span>
+    <span class="example-pill" data-verb="tocar">tocar</span>
+    <span class="example-pill" data-verb="llegar">llegar</span>
+    <span class="example-pill" data-verb="empezar">empezar</span>
+    <span class="example-pill" data-verb="recoger">recoger</span>
+    <span class="example-pill" data-verb="seguir">seguir</span>
+    <span class="example-pill" data-verb="lavarse">lavarse</span>
+    <span class="example-pill" data-verb="venir">venir</span>
+    <span class="example-pill" data-verb="dármelo">dármelo</span>
+  </div>
+</header>
+
+<div class="main-grid">
+
+  <!-- LEFT COLUMN -->
+  <div class="left-col">
+
+    <!-- Infinitive -->
+    <div class="card">
+      <div class="card-title">① Infinitive Verb</div>
+      <div class="infinitive-wrap">
+        <input id="infinitive-input" type="text" placeholder="hablar, lavarse, dármelo…" autocomplete="off" spellcheck="false" />
+      </div>
+    </div>
+
+    <!-- Toggles -->
+    <div class="card">
+      <div class="card-title">② Parameters</div>
+      <div class="toggle-group">
+
+        <div class="toggle-row">
+          <span class="toggle-label">Person</span>
+          <div class="toggle-pill" id="person-toggle">
+            <button class="active" data-val="tu">Tú</button>
+            <button data-val="vosotros">Vosotros</button>
+            <button data-val="ud">Ud.</button>
+            <button data-val="uds">Uds.</button>
+            <button data-val="nosotros">Nos.</button>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <span class="toggle-label">Mood</span>
+          <div class="toggle-pill" id="mood-toggle">
+            <button class="active" data-val="affirmative">Affirmative</button>
+            <button data-val="negative">Negative</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN: Pronouns -->
+  <div class="card pronouns-card">
+    <div class="card-title">③ Pronouns (optional)</div>
+    <div class="pronoun-grid" id="pronoun-grid">
+      <!-- dynamically built -->
+    </div>
+  </div>
+
+  <!-- OUTPUT FULL WIDTH -->
+  <div class="output-card">
+    <div class="card-title">④ Result</div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--stem-color)"></div> Stem</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--ending-color)"></div> Ending</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--pronoun-color)"></div> Pronouns</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--no-color)"></div> Negation</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--spell-color)"></div> Spelling Change</div>
+    </div>
+
+    <div class="command-display" id="command-display">
+      <div class="empty-state">Enter a verb to begin…</div>
+    </div>
+
+    <div id="spell-alert-box"></div>
+
+    <div class="logic-path" id="logic-path">
+      <div class="logic-path-title">🔍 Logic Path</div>
+      <div style="color:var(--muted);font-size:0.82rem;">The engine's reasoning will appear here.</div>
+    </div>
+
+    <button class="build-btn" id="build-btn">⚡ Build Command</button>
+  </div>
+
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Rules Reference Panel -->
+<div style="max-width:960px;margin:28px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;">
+
+  <div style="background:#1a1d27;border:1px solid #2e3450;border-radius:14px;padding:18px;">
+    <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#8b90b0;margin-bottom:10px;">📌 Rule A — Tú Affirmative Irregulars</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#7c6af7;font-weight:700;">hacer→haz</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#7c6af7;font-weight:700;">decir→di</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#7c6af7;font-weight:700;">salir→sal</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#7c6af7;font-weight:700;">tener→ten</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#7c6af7;font-weight:700;">venir→ven</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#7c6af7;font-weight:700;">ir→ve</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#7c6af7;font-weight:700;">poner→pon</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#7c6af7;font-weight:700;">ser→sé</span>
+    </div>
+  </div>
+
+  <div style="background:#1a1d27;border:1px solid #2e3450;border-radius:14px;padding:18px;">
+    <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#8b90b0;margin-bottom:10px;">🔄 Rule B — SIDES Irregulars (Subj.)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f76a8a;font-weight:700;">ser→sea</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f76a8a;font-weight:700;">ir→vaya</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f76a8a;font-weight:700;">dar→dé</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f76a8a;font-weight:700;">estar→esté</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f76a8a;font-weight:700;">saber→sepa</span>
+    </div>
+  </div>
+
+  <div style="background:#1a1d27;border:1px solid #2e3450;border-radius:14px;padding:18px;">
+    <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#8b90b0;margin-bottom:10px;">⚡ Rule B — Yo-Go Roots</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7c46a;font-weight:700;">hacer→hag-</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7c46a;font-weight:700;">decir→dig-</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7c46a;font-weight:700;">salir→salg-</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7c46a;font-weight:700;">tener→teng-</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7c46a;font-weight:700;">poner→pong-</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7c46a;font-weight:700;">traer→traig-</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7c46a;font-weight:700;">venir→veng-</span>
+    </div>
+  </div>
+
+  <div style="background:#1a1d27;border:1px solid #2e3450;border-radius:14px;padding:18px;">
+    <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#8b90b0;margin-bottom:10px;">🔢 Rule C — Nosotros -IR Partial Change</div>
+    <div style="font-size:0.8rem;color:#e8eaf6;line-height:1.6;">
+      <span style="color:#6af7c0;font-weight:700;">e→ie</span> verbs: only <span style="color:#6af7c0">e→i</span> &nbsp;|&nbsp;
+      <span style="color:#6af7c0;font-weight:700;">o→ue</span> verbs: only <span style="color:#6af7c0">o→u</span><br>
+      <span style="color:#8b90b0">dormir: </span><span style="color:#f76a8a">durm</span><span style="color:#e8eaf6">amos</span> &nbsp;|&nbsp;
+      <span style="color:#8b90b0">pedir: </span><span style="color:#f76a8a">pid</span><span style="color:#e8eaf6">amos</span><br>
+      <span style="color:#8b90b0;font-size:0.73rem;">(-AR/-ER nosotros: NO change at all)</span>
+    </div>
+  </div>
+
+  <div style="background:#1a1d27;border:1px solid #2e3450;border-radius:14px;padding:18px;">
+    <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#8b90b0;margin-bottom:10px;">✏️ Spelling Changes (Orthographic)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7a24a;font-weight:700;">-car: c→qu (toque)</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7a24a;font-weight:700;">-gar: g→gu (llegue)</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7a24a;font-weight:700;">-zar: z→c (empiece)</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7a24a;font-weight:700;">-ger/-gir: g→j (recoja)</span>
+      <span style="background:#22263a;border:1px solid #2e3450;border-radius:6px;padding:3px 9px;font-size:0.78rem;color:#f7a24a;font-weight:700;">-guir: gu→g (siga)</span>
+    </div>
+  </div>
+
+  <div style="background:#1a1d27;border:1px solid #2e3450;border-radius:14px;padding:18px;">
+    <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#8b90b0;margin-bottom:10px;">🔗 Pronoun RID Order & Le→Se Rule</div>
+    <div style="font-size:0.8rem;color:#e8eaf6;line-height:1.6;">
+      Order: <span style="color:#6af7c0;font-weight:700;">R</span>eflexive → <span style="color:#6af7c0;font-weight:700;">I</span>ndirect → <span style="color:#6af7c0;font-weight:700;">D</span>irect<br>
+      <span style="color:#f7a24a;">le/les + lo/la/los/las → se + lo/la…</span><br>
+      <span style="color:#8b90b0;font-size:0.73rem;">digámoselo · házmelo · díselo</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  COMMAND MASTER — Spanish Imperative Logic Engine
+//  Modules: Orthographic, Collision, Lelo/RID, Accent
+// ============================================================
+
+// ── CONSTANTS ────────────────────────────────────────────────
+
+const PRONOUNS_DEF = [
+  { id: 'reflexive', label: 'Reflexive', display: 'se/me/te…', role: 'reflexive' },
+  { id: 'me',        label: 'Me',        display: 'me',         role: 'indirect' },
+  { id: 'te',        label: 'Te',        display: 'te',         role: 'indirect' },
+  { id: 'le',        label: 'Le / Se',   display: 'le',         role: 'indirect' },
+  { id: 'lo',        label: 'Lo / La',   display: 'lo',         role: 'direct' },
+  { id: 'nos',       label: 'Nos',       display: 'nos',        role: 'indirect' },
+  { id: 'os',        label: 'Os',        display: 'os',         role: 'indirect' },
+  { id: 'les',       label: 'Les / Se',  display: 'les',        role: 'indirect' },
+  { id: 'los',       label: 'Los / Las', display: 'los',        role: 'direct' },
+];
+
+// Rule A: Tú affirmative irregulars
+const TU_AFF_IRREGULARS = {
+  hacer: 'haz', decir: 'di', salir: 'sal', tener: 'ten',
+  venir: 'ven', ir: 've', poner: 'pon', ser: 'sé'
+};
+
+// Rule B: Yo-go roots
+const YO_GO_ROOTS = {
+  hacer: 'hag', decir: 'dig', salir: 'salg', tener: 'teng',
+  poner: 'pong', traer: 'traig', oír: 'oig', venir: 'veng',
+  caer: 'caig', valer: 'valg', conocer: 'conozc', traducir: 'traduzc',
+  conducir: 'conduzc'
+};
+
+// Rule B: SIDES irregulars
+const SIDES_IRREGULARS = {
+  ser: { base: 'sea', stem: 'se', ending: 'a' },
+  ir:  { base: 'vaya', stem: 'vay', ending: 'a' },
+  dar: { base: 'dé',  stem: 'd', ending: 'é' },
+  estar: { base: 'esté', stem: 'est', ending: 'é' },
+  saber: { base: 'sep', stem: 'sep', ending: 'a' },
+};
+
+// Rule C: Stem-change verbs
+const STEM_CHANGES = {
+  pensar:'e->ie', empezar:'e->ie', comenzar:'e->ie', perder:'e->ie',
+  querer:'e->ie', entender:'e->ie', sentir:'e->ie', preferir:'e->ie',
+  mentir:'e->ie', venir:'e->ie', tener:'e->ie', cerrar:'e->ie',
+  despertar:'e->ie', divertir:'e->ie', hervir:'e->ie', advertir:'e->ie',
+  convertir:'e->ie', invertir:'e->ie', negar:'e->ie', fregar:'e->ie',
+  regar:'e->ie', defender:'e->ie', extender:'e->ie', encender:'e->ie',
+  nevar:'e->ie', calentar:'e->ie', apretar:'e->ie', confesar:'e->ie',
+  helar:'e->ie', recomendar:'e->ie', sentar:'e->ie',
+  dormir:'o->ue', morir:'o->ue', poder:'o->ue', volver:'o->ue',
+  mover:'o->ue', probar:'o->ue', contar:'o->ue', costar:'o->ue',
+  recordar:'o->ue', mostrar:'o->ue', almorzar:'o->ue', encontrar:'o->ue',
+  rogar:'o->ue', jugar:'u->ue', soñar:'o->ue', volar:'o->ue',
+  llover:'o->ue', torcer:'o->ue', resolver:'o->ue', devolver:'o->ue',
+  envolver:'o->ue', morder:'o->ue', oler:'o->hue',
+  pedir:'e->i', repetir:'e->i', seguir:'e->i', servir:'e->i',
+  vestir:'e->i', conseguir:'e->i', elegir:'e->i', corregir:'e->i',
+  medir:'e->i', reír:'e->i', sonreír:'e->i', freír:'e->i',
+  gemir:'e->i', rendir:'e->i', impedir:'e->i', despedir:'e->i',
+};
+
+const IR_VERBS_NEEDING_PARTIAL = [
+  'dormir','morir','sentir','preferir','mentir','divertir','hervir',
+  'advertir','convertir','invertir','sugerir','pedir','repetir',
+  'seguir','servir','vestir','conseguir','elegir','corregir','medir',
+  'gemir','rendir','impedir','despedir','reír','sonreír','freír'
+];
+
+// ── MODULE 1: ORTHOGRAPHIC CHANGE DETECTION ──────────────────
+// Detects and returns what kind of spelling change occurred (for alert UI)
+// Called BEFORE applying the change so we can report it
+function detectOrthographicChange(root, inf, endingVowel) {
+  // These changes only apply when the subjunctive ending vowel is 'e' (for -ar verbs)
+  // or 'a' (for -er/-ir verbs with ger/gir/guir)
+  const ev = endingVowel.toLowerCase();
+  const verbClass = getVerbClass(inf);
+
+  if (ev === 'e') {
+    // -car verbs: c → qu
+    if (inf.endsWith('car')) {
+      return { type: 'car', from: 'c', to: 'qu', desc: "'c' became 'qu' to keep the hard K sound before 'e'." };
+    }
+    // -gar verbs: g → gu
+    if (inf.endsWith('gar')) {
+      return { type: 'gar', from: 'g', to: 'gu', desc: "'g' became 'gu' to keep the hard G sound before 'e'." };
+    }
+    // -zar verbs: z → c
+    if (inf.endsWith('zar')) {
+      return { type: 'zar', from: 'z', to: 'c', desc: "'z' became 'c' before 'e' (Spanish spelling rule: z→c before e/i)." };
+    }
+    // -guar verbs: gu → gü
+    if (inf.endsWith('guar')) {
+      return { type: 'guar', from: 'gu', to: 'gü', desc: "'gu' became 'gü' (diaeresis) to keep the U sound before 'e'." };
+    }
+  }
+
+  // -ger/-gir verbs: g → j before 'a' or 'o' (subjunctive ending vowel 'a')
+  if (ev === 'a') {
+    if (inf.endsWith('ger') || inf.endsWith('gir')) {
+      return { type: 'ger_gir', from: 'g', to: 'j', desc: "'g' became 'j' to keep the soft H sound before 'a' (ger/gir rule)." };
+    }
+    // -guir verbs: gu → g before 'a'
+    if (inf.endsWith('guir')) {
+      return { type: 'guir', from: 'gu', to: 'g', desc: "'gu' became 'g' before 'a' (guir rule — the U is silent before a)." };
+    }
+    // -cer/-cir verbs: c → z before 'a' (e.g., vencer → venza)
+    if ((inf.endsWith('cer') || inf.endsWith('cir')) && !inf.endsWith('acer') && !inf.endsWith('ecer') && !inf.endsWith('ocer') && !inf.endsWith('ucir')) {
+      return { type: 'cer_cir', from: 'c', to: 'z', desc: "'c' became 'z' before 'a' (cer/cir rule)." };
+    }
+  }
+
+  return null; // no orthographic change
+}
+
+// ── MODULE 1: APPLY ORTHOGRAPHIC CHANGES ─────────────────────
+// Enhanced applySpellingChange that handles all 5 CAR/GAR/ZAR/GER-GIR/GUIR cases
+function applySpellingChange(root, endingVowel, verbClass, inf) {
+  let r = root;
+  const ev = endingVowel.toLowerCase();
+
+  if (ev === 'e') {
+    // -car: c → qu (tocar → toqu-)
+    if (r.endsWith('c') && (verbClass === 'ar' || (inf && inf.endsWith('car')))) {
+      r = r.slice(0, -1) + 'qu';
+    }
+    // -gar: g → gu (llegar → llegu-)
+    else if (r.endsWith('g') && (verbClass === 'ar' || (inf && inf.endsWith('gar')))) {
+      r = r.slice(0, -1) + 'gu';
+    }
+    // -zar: z → c (almorzar → almuerce, empezar → empiece)
+    else if (r.endsWith('z')) {
+      r = r.slice(0, -1) + 'c';
+    }
+    // -guar: gu → gü (averiguar → averigü-)
+    else if (r.endsWith('gu') && (verbClass === 'ar' || (inf && inf.endsWith('guar')))) {
+      r = r.slice(0, -2) + 'gü';
+    }
+  } else if (ev === 'a') {
+    // -ger/-gir: g → j (recoger → recoj-, elegir → elij-)
+    if (r.endsWith('g') && inf && (inf.endsWith('ger') || inf.endsWith('gir'))) {
+      r = r.slice(0, -1) + 'j';
+    }
+    // -guir: gu → g (seguir → sig-)  NOTE: stem change e->i already applied, root is sig
+    // The gu→g change happens naturally because 'guir' drops 'gu' → 'g' before 'a'
+    // After e->i stem change, 'segu' root becomes 'sig' so we check original inf
+    else if (r.endsWith('gu') && inf && inf.endsWith('guir')) {
+      r = r.slice(0, -2) + 'g';
+    }
+    // Also handle if gu already became g via stem change but inf still ends in guir
+    // -cer/-cir: c → z (vencer → venz-, torcer → tuerz-)
+    else if (r.endsWith('c') && inf && (inf.endsWith('cer') || inf.endsWith('cir')) &&
+             !inf.endsWith('hacer') && !inf.endsWith('nacer')) {
+      r = r.slice(0, -1) + 'z';
+    }
+    // -er/-ir ending in gu from yo-go (handled by yo-go already, skip)
+    else if (r.endsWith('gu') && verbClass === 'er') {
+      r = r.slice(0, -2) + 'g';
+    }
+    else if (r.endsWith('qu') && verbClass === 'er') {
+      r = r.slice(0, -2) + 'c';
+    }
+  }
+
+  return r;
+}
+
+// ── HELPERS ──────────────────────────────────────────────────
+
+function getVerbClass(inf) {
+  inf = inf.toLowerCase().trim();
+  if (inf.endsWith('ar')) return 'ar';
+  if (inf.endsWith('er')) return 'er';
+  if (inf.endsWith('ir')) return 'ir';
+  return null;
+}
+
+function getInfRoot(inf) {
+  inf = inf.toLowerCase().trim();
+  const vc = getVerbClass(inf);
+  if (!vc) return inf;
+  return inf.slice(0, -2);
+}
+
+function applyStemChange(root, changeType) {
+  if (!changeType) return { newRoot: root, changed: false };
+  let newRoot = root;
+  let changed = false;
+
+  if (changeType === 'e->ie') {
+    const idx = root.lastIndexOf('e');
+    if (idx !== -1) { newRoot = root.slice(0, idx) + 'ie' + root.slice(idx + 1); changed = true; }
+  } else if (changeType === 'o->ue') {
+    const idx = root.lastIndexOf('o');
+    if (idx !== -1) { newRoot = root.slice(0, idx) + 'ue' + root.slice(idx + 1); changed = true; }
+  } else if (changeType === 'e->i') {
+    const idx = root.lastIndexOf('e');
+    if (idx !== -1) { newRoot = root.slice(0, idx) + 'i' + root.slice(idx + 1); changed = true; }
+  } else if (changeType === 'u->ue') {
+    const idx = root.lastIndexOf('u');
+    if (idx !== -1) { newRoot = root.slice(0, idx) + 'ue' + root.slice(idx + 1); changed = true; }
+  } else if (changeType === 'o->hue') {
+    const idx = root.lastIndexOf('o');
+    if (idx !== -1) { newRoot = root.slice(0, idx) + 'hue' + root.slice(idx + 1); changed = true; }
+  }
+
+  return { newRoot, changed };
+}
+
+function applyPartialStemChange(root, changeType) {
+  let newRoot = root;
+  let changed = false;
+  if (changeType === 'e->ie' || changeType === 'e->i') {
+    const idx = root.lastIndexOf('e');
+    if (idx !== -1) { newRoot = root.slice(0, idx) + 'i' + root.slice(idx + 1); changed = true; }
+  } else if (changeType === 'o->ue' || changeType === 'o->hue') {
+    const idx = root.lastIndexOf('o');
+    if (idx !== -1) { newRoot = root.slice(0, idx) + 'u' + root.slice(idx + 1); changed = true; }
+  }
+  return { newRoot, changed };
+}
+
+// ── SYLLABLE & ACCENT LOGIC ──────────────────────────────────
+
+const VOWELS = 'aeiouáéíóúü';
+const STRONG_VOWELS = 'aeoáéó';
+const WEAK_VOWELS = 'iuíú';
+
+function isVowel(ch) { return VOWELS.includes(ch.toLowerCase()); }
+function isStrong(ch) { return STRONG_VOWELS.includes(ch.toLowerCase()); }
+function isWeak(ch) { return WEAK_VOWELS.includes(ch.toLowerCase()); }
+function hasAccent(ch) { return 'áéíóú'.includes(ch.toLowerCase()); }
+
+function syllabify(word) {
+  word = word.toLowerCase();
+  const syllables = [];
+  let i = 0;
+  let current = '';
+
+  while (i < word.length) {
+    const ch = word[i];
+    if (!isVowel(ch)) {
+      current += ch;
+      i++;
+    } else {
+      current += ch;
+      i++;
+      while (i < word.length && isVowel(word[i])) {
+        const next = word[i];
+        const prev = word[i - 1];
+        if (isStrong(prev) && isStrong(next) && !hasAccent(prev) && !hasAccent(next)) break;
+        if ((isStrong(prev) || isWeak(prev)) && hasAccent(next)) break;
+        current += next;
+        i++;
+      }
+      const consBuf = [];
+      while (i < word.length && !isVowel(word[i])) {
+        consBuf.push(word[i]);
+        i++;
+      }
+      if (consBuf.length === 0) {
+        syllables.push(current);
+        current = '';
+      } else if (consBuf.length === 1) {
+        if (i >= word.length) {
+          current += consBuf[0];
+          syllables.push(current);
+          current = '';
+        } else {
+          syllables.push(current);
+          current = consBuf[0];
+        }
+      } else if (consBuf.length >= 2) {
+        const clusters = ['bl','br','cl','cr','dr','fl','fr','gl','gr','pl','pr','tr','tl'];
+        const lastTwo = consBuf.slice(-2).join('');
+        if (clusters.includes(lastTwo) && i < word.length) {
+          current += consBuf.slice(0, -2).join('');
+          syllables.push(current);
+          current = lastTwo;
+        } else {
+          current += consBuf.slice(0, -1).join('');
+          syllables.push(current);
+          current = consBuf[consBuf.length - 1];
+        }
+      }
+    }
+  }
+  if (current) syllables.push(current);
+  return syllables;
+}
+
+function countSyllables(word) {
+  return syllabify(word).length;
+}
+
+function addAccentToSyllable(word, sylIdx) {
+  const syls = syllabify(word.toLowerCase());
+  if (sylIdx < 0 || sylIdx >= syls.length) return word;
+  const accentMap = { a:'á', e:'é', i:'í', o:'ó', u:'ú' };
+  let syl = syls[sylIdx];
+  const strongOrder = ['a', 'e', 'o', 'i', 'u'];
+  let accentIdx = -1;
+  for (const sv of strongOrder) {
+    const idx = syl.lastIndexOf(sv);
+    if (idx !== -1) { accentIdx = idx; break; }
+  }
+  if (accentIdx === -1) return word;
+  const accentedSyl = syl.slice(0, accentIdx) + (accentMap[syl[accentIdx]] || syl[accentIdx]) + syl.slice(accentIdx + 1);
+  syls[sylIdx] = accentedSyl;
+  return syls.join('');
+}
+
+// ── MODULE 4: ACCENT MARK PRECISION ─────────────────────────
+// Handles:
+// - 1-syllable base: only accent if TWO pronouns attached
+// - Multi-syllable base: accent if original stress shifts with pronoun attachment
+function calculateAccent(verbForm, pronounsStr, pronounCount) {
+  if (!pronounsStr) return { needsAccent: false, accentedVerb: verbForm };
+
+  // If already has a written accent, no need to add
+  if (/[áéíóú]/.test(verbForm)) {
+    return { needsAccent: false, accentedVerb: verbForm };
+  }
+
+  const verbSyls = syllabify(verbForm.toLowerCase());
+  const combined = verbForm + pronounsStr;
+  const combinedSyls = syllabify(combined.toLowerCase());
+  const nVerb = verbSyls.length;
+  const nCombined = combinedSyls.length;
+
+  // MODULE 4 EXCEPTION: 1-syllable base only gets accent with 2+ pronouns
+  if (nVerb === 1) {
+    if (pronounCount >= 2) {
+      // Accent the single syllable (which is index 0)
+      const accentedVerb = addAccentToSyllable(verbForm, 0);
+      return { needsAccent: true, accentedVerb, reason: 'one-syllable base with two pronouns' };
+    } else {
+      return { needsAccent: false, accentedVerb: verbForm };
+    }
+  }
+
+  // Multi-syllable: determine where the stress WANTS to be in the original verb
+  const verbLast = verbForm[verbForm.length - 1].toLowerCase();
+  let origStressFromEnd;
+  if (isVowel(verbLast) || verbLast === 'n' || verbLast === 's') {
+    origStressFromEnd = 1; // penultimate
+  } else {
+    origStressFromEnd = 0; // last
+  }
+
+  // How many new syllables does the pronoun string add?
+  const addedSyls = nCombined - nVerb;
+  // In the combined word, where does the original stress now fall (from end)?
+  const newStressFromEnd = origStressFromEnd + addedSyls;
+
+  // Where does natural stress fall in the combined word?
+  const combinedLast = combined[combined.length - 1].toLowerCase();
+  let naturalFromEnd;
+  if (isVowel(combinedLast) || combinedLast === 'n' || combinedLast === 's') {
+    naturalFromEnd = 1;
+  } else {
+    naturalFromEnd = 0;
+  }
+
+  const needsAccent = newStressFromEnd !== naturalFromEnd;
+
+  if (needsAccent) {
+    const stressedSylIdx = nVerb - 1 - origStressFromEnd;
+    const accentedVerb = addAccentToSyllable(verbForm, Math.max(0, stressedSylIdx));
+    return { needsAccent: true, accentedVerb, reason: 'stress shifts with pronoun attachment' };
+  }
+
+  return { needsAccent: false, accentedVerb: verbForm };
+}
+
+// ── MODULE 3: PRONOUN "LELO" / RID ORDER ─────────────────────
+// Enforces: le/les → se when a direct object (lo/la/los/las) is present
+// Enforces order: Reflexive → Indirect → Direct
+function resolvePronouns(ids, person) {
+  const reflexivePronounMap = {
+    tu: 'te', vosotros: 'os', ud: 'se', uds: 'se', nosotros: 'nos'
+  };
+
+  const parts = { reflexive: [], indirect: [], direct: [] };
+  const lelo_applied = { happened: false, original: '', changed_to: '' };
+
+  // Check if any direct object is selected
+  const hasDirect = ids.includes('lo') || ids.includes('los');
+
+  for (const id of ids) {
+    const pdef = PRONOUNS_DEF.find(p => p.id === id);
+    if (!pdef) continue;
+    let form = pdef.display;
+
+    if (id === 'reflexive') {
+      form = reflexivePronounMap[person] || 'se';
+      parts.reflexive.push(form);
+    } else if (id === 'le') {
+      // MODULE 3: le → se before direct object (Lelo Rule)
+      if (hasDirect) {
+        lelo_applied.happened = true;
+        lelo_applied.original = 'le';
+        lelo_applied.changed_to = 'se';
+        form = 'se';
+      } else {
+        form = 'le';
+      }
+      parts.indirect.push(form);
+    } else if (id === 'les') {
+      // MODULE 3: les → se before direct object
+      if (hasDirect) {
+        lelo_applied.happened = true;
+        lelo_applied.original = 'les';
+        lelo_applied.changed_to = 'se';
+        form = 'se';
+      } else {
+        form = 'les';
+      }
+      parts.indirect.push(form);
+    } else if (pdef.role === 'indirect') {
+      parts.indirect.push(form);
+    } else if (pdef.role === 'direct') {
+      parts.direct.push(form);
+    }
+  }
+
+  // RID order: Reflexive → Indirect → Direct
+  const ordered = [...parts.reflexive, ...parts.indirect, ...parts.direct];
+  return { pronounArray: ordered, lelo_applied };
+}
+
+// ── CORE ENGINE ──────────────────────────────────────────────
+
+function buildCommand(infinitive, person, mood, selectedPronounIds) {
+  const inf = infinitive.toLowerCase().trim();
+  const verbClass = getVerbClass(inf);
+  const steps = [];
+  const result = {
+    verb: '', stem: '', ending: '', pronouns: '', no: '',
+    success: true, error: '',
+    spellAlert: null  // Will hold orthographic change info
+  };
+
+  if (!verbClass) {
+    result.success = false;
+    result.error = `"${inf}" doesn't look like a Spanish verb (needs -ar, -er, or -ir ending).`;
+    return { result, steps };
+  }
+
+  // ── MODULE 3: RESOLVE PRONOUNS (RID + Lelo) ─────────────────
+  const { pronounArray, lelo_applied } = resolvePronouns(selectedPronounIds, person);
+
+  if (lelo_applied.happened) {
+    steps.push({
+      rule: 'Module 3',
+      text: `"Lelo" Rule: Indirect object <strong>${lelo_applied.original}</strong> → <strong>${lelo_applied.changed_to}</strong> because a direct object (lo/la/los/las) follows. Order enforced: Reflexive → Indirect → Direct.`
+    });
+  } else if (pronounArray.length > 1) {
+    steps.push({
+      rule: 'Module 3',
+      text: `RID Order enforced: <strong>R</strong>eflexive → <strong>I</strong>ndirect → <strong>D</strong>irect → "${pronounArray.join('')}"`
+    });
+  }
+
+  // ── VERB FORM GENERATION ─────────────────────────────────────
+
+  let stemPart = '';
+  let endingPart = '';
+  let verbForm = '';
+  let ruleUsed = '';
+
+  const sidesEntry = SIDES_IRREGULARS[inf];
+  const isSIDES = !!sidesEntry;
+  const yoGoRoot = YO_GO_ROOTS[inf];
+  const stemChangeType = STEM_CHANGES[inf];
+  const isIR = verbClass === 'ir';
+
+  // ── RULE A: TÚ AFFIRMATIVE ──────────────────────────────────
+  if (person === 'tu' && mood === 'affirmative') {
+    steps.push({ rule: 'Rule A', text: `Tú + Affirmative → Use 3rd person singular present indicative as default.` });
+
+    if (TU_AFF_IRREGULARS[inf]) {
+      verbForm = TU_AFF_IRREGULARS[inf];
+      stemPart = verbForm;
+      endingPart = '';
+      steps.push({ rule: 'Rule A', text: `"${inf}" is a hardcoded Tú-affirmative irregular → <strong>${verbForm}</strong>` });
+      ruleUsed = 'A-irregular';
+    } else {
+      let root = getInfRoot(inf);
+      let sc = stemChangeType;
+      let scNote = '';
+
+      if (sc) {
+        const { newRoot, changed } = applyStemChange(root, sc);
+        if (changed) {
+          scNote = ` Stem change (${sc}) applied: <em>${root}</em> → <em>${newRoot}</em>.`;
+          root = newRoot;
+        }
+      }
+
+      let ending;
+      if (verbClass === 'ar') ending = 'a';
+      else ending = 'e';
+
+      // No orthographic change needed for tú affirmative (ending is a/e from indicative, not subjunctive)
+      verbForm = root + ending;
+      stemPart = root;
+      endingPart = ending;
+
+      steps.push({ rule: 'Rule A', text: `Root: <em>${getInfRoot(inf)}</em> + ending "<strong>${ending}</strong>" (3rd sg present).${scNote}` });
+      ruleUsed = 'A-regular';
+    }
+  }
+
+  // ── RULE B: SUBJUNCTIVE ENGINE ──────────────────────────────
+  else {
+    const negNote = mood === 'negative' ? 'Negative command' : `"${person}" command`;
+    steps.push({ rule: 'Rule B', text: `${negNote} → Subjunctive engine activated. Take the "Yo" present root, drop the -o, swap the ending.` });
+
+    if (isSIDES && inf !== 'ir' && inf !== 'ser') {
+      const endings = getSIDESForm(inf, person, sidesEntry);
+      verbForm = endings.form;
+      stemPart = endings.stem;
+      endingPart = endings.ending;
+      steps.push({ rule: 'Rule B', text: `"${inf}" is a SIDES irregular. Form: <strong>${verbForm}</strong>` });
+      ruleUsed = 'B-SIDES';
+
+    } else if (inf === 'ser') {
+      const forms =    { tu: 'seas', vosotros: 'seáis', ud: 'sea', uds: 'sean', nosotros: 'seamos' };
+      const stems =    { tu: 'se',   vosotros: 'se',    ud: 'se',  uds: 'se',   nosotros: 'se' };
+      const endings2 = { tu: 'as',   vosotros: 'áis',   ud: 'a',   uds: 'an',   nosotros: 'amos' };
+      verbForm = forms[person];
+      stemPart = stems[person];
+      endingPart = endings2[person];
+      steps.push({ rule: 'Rule B', text: `"ser" is a SIDES irregular → <strong>${verbForm}</strong>` });
+      ruleUsed = 'B-SIDES';
+
+    } else if (inf === 'ir') {
+      const forms =    { tu: 'vayas', vosotros: 'vayáis', ud: 'vaya', uds: 'vayan', nosotros: 'vayamos' };
+      const endings2 = { tu: 'as',    vosotros: 'áis',    ud: 'a',    uds: 'an',    nosotros: 'amos' };
+      verbForm = forms[person];
+      stemPart = 'vay';
+      endingPart = endings2[person];
+      steps.push({ rule: 'Rule B', text: `"ir" is a SIDES irregular → <strong>${verbForm}</strong>` });
+      ruleUsed = 'B-SIDES';
+
+    } else {
+      // General subjunctive
+      let root = getInfRoot(inf);
+      let scNote = '';
+
+      if (yoGoRoot) {
+        // ── FIX: Yo-Go Root SUPREMACY ─────────────────────────────
+        // The yo-go root ALWAYS wins. Never apply a diphthong stem change
+        // on top of a yo-go root. (Prevents "viengan" — venir uses veng-, not vieng-)
+        root = yoGoRoot;
+        steps.push({
+          rule: 'Rule B',
+          text: `"${inf}" has a Yo-go irregular form (yo: ${root}o). Subjunctive root locked to <em>${root}</em>. Stem-change rules are <strong>bypassed</strong>.`
+        });
+        // Vosotros affirmative note (no stem change ever for vosotros-aff, handled separately)
+      } else {
+        // Stem changes — only when NO yo-go root exists
+        const sc = stemChangeType;
+        if (sc) {
+          if (person === 'vosotros') {
+            // Safety Net: Vosotros affirmative NEVER stem-changes (handled in override block)
+            // For vosotros subjunctive (negative): also no stem change
+            steps.push({ rule: 'Rule C', text: `Vosotros: stem changes do NOT apply. Root stays: <em>${root}</em>.` });
+          } else if (person === 'nosotros' && isIR && IR_VERBS_NEEDING_PARTIAL.includes(inf)) {
+            const { newRoot, changed } = applyPartialStemChange(root, sc);
+            if (changed) {
+              scNote = ` Nosotros -IR partial change: <em>${root}</em> → <em>${newRoot}</em>.`;
+              root = newRoot;
+            }
+            steps.push({ rule: 'Rule C', text: `Nosotros + -IR verb: partial stem change only (e→i / o→u). ${scNote}` });
+          } else if (person === 'nosotros' && !isIR) {
+            steps.push({ rule: 'Rule C', text: `Nosotros + -${verbClass.toUpperCase()} verb: NO diphthong stem change in nosotros subjunctive. Root stays: <em>${root}</em>.` });
+          } else {
+            // tu (subj), ud, uds — full stem change
+            const { newRoot, changed } = applyStemChange(root, sc);
+            if (changed) {
+              scNote = ` Stem change (${sc}): <em>${getInfRoot(inf)}</em> → <em>${newRoot}</em>.`;
+              root = newRoot;
+            }
+            steps.push({ rule: 'Rule C', text: `Stem-changing verb (${sc}).${scNote}` });
+          }
+        }
+      }
+
+      // Determine subjunctive ending
+      const { endingVowel, fullEnding } = getSubjunctiveEnding(verbClass, person);
+
+      // ── MODULE 1: DETECT ORTHOGRAPHIC CHANGE ─────────────────
+      const orthoChange = detectOrthographicChange(root, inf, endingVowel);
+
+      // Apply spelling change (enhanced with all 5 cases)
+      const spellRoot = applySpellingChange(root, endingVowel, verbClass, inf);
+
+      if (spellRoot !== root) {
+        // Store alert info
+        result.spellAlert = orthoChange;
+
+        if (orthoChange) {
+          steps.push({
+            rule: 'Module 1',
+            text: `Orthographic change: <em>${root}</em> → <em>${spellRoot}</em> before "${endingVowel}" ending. ${orthoChange.desc}`
+          });
+        } else {
+          steps.push({
+            rule: 'Module 1',
+            text: `Spelling adjustment: <em>${root}</em> → <em>${spellRoot}</em> before "${endingVowel}" ending.`
+          });
+        }
+      }
+
+      verbForm = spellRoot + fullEnding;
+      stemPart = spellRoot;
+      endingPart = fullEnding;
+      ruleUsed = yoGoRoot ? 'B-yogo' : 'B-regular';
+
+      steps.push({ rule: 'Rule B', text: `Root "<em>${spellRoot}</em>" + subjunctive ending "<strong>${fullEnding}</strong>" for ${person} → <strong>${verbForm}</strong>.` });
+    }
+  }
+
+  // ── MODULE 2: VOSOTROS AFFIRMATIVE OVERRIDE ─────────────────
+  // Vosotros affirmative: replace final -r with -d
+  if (person === 'vosotros' && mood === 'affirmative') {
+    steps.length = 0;
+    steps.push({ rule: 'Rule Special', text: `Vosotros + Affirmative → Replace the final -r of infinitive with -d.` });
+
+    if (inf === 'ir') {
+      verbForm = 'id';
+      stemPart = 'i';
+      endingPart = 'd';
+      steps.push({ rule: 'Module 2', text: `"ir" Vosotros affirmative: <strong>id</strong> (special form — not "ios" and not "idos" as the base, but if "os" is added → <strong>idos</strong>).` });
+    } else {
+      const ending = verbClass === 'ar' ? 'ad' : verbClass === 'er' ? 'ed' : 'id';
+      verbForm = getInfRoot(inf) + ending;
+      stemPart = getInfRoot(inf);
+      endingPart = ending;
+      steps.push({ rule: 'Special', text: `Root "<em>${stemPart}</em>" + vosotros ending "<strong>${ending}</strong>".` });
+    }
+    ruleUsed = 'vosotros-affirmative';
+  }
+
+  // ── RULE D: PRONOUN PLACEMENT ─────────────────────────────────
+  steps.push({
+    rule: 'Rule D',
+    text: `Mood: ${mood}. ${mood === 'affirmative'
+      ? 'Affirmative → pronouns attach AFTER verb (enclíticos).'
+      : 'Negative → pronouns go BEFORE verb.'}`
+  });
+
+  let finalCommand = '';
+  let pronounStr = '';
+
+  if (pronounArray.length > 0) {
+    if (mood === 'affirmative') {
+      pronounStr = pronounArray.join('');
+
+      // ── MODULE 2: LETTER COLLISION HANDLING ───────────────────
+      let adjustedVerb = verbForm;
+      let adjustedStem = stemPart;
+      let adjustedEnding = endingPart;
+
+      // NOSOTROS 'S' DROP: drop final 's' before attaching 'nos' OR 'se' (when followed by lo/la)
+      if (person === 'nosotros') {
+        const hasNos = pronounArray.includes('nos');
+        // Check if 'se' is in the pronoun array and will be followed by a direct object
+        const hasSe = pronounArray.includes('se');
+        const hasDirectAfterSe = (hasSe &&
+          (pronounArray.indexOf('lo') > pronounArray.indexOf('se') ||
+           pronounArray.indexOf('los') > pronounArray.indexOf('se')));
+
+        if ((hasNos || hasDirectAfterSe) && adjustedVerb.endsWith('s')) {
+          adjustedVerb = adjustedVerb.slice(0, -1);
+          if (adjustedEnding.endsWith('s')) {
+            adjustedEnding = adjustedEnding.slice(0, -1);
+          }
+          const dropReason = hasNos ? '"nos"' : '"se" + direct object';
+          steps.push({
+            rule: 'Module 2',
+            text: `Nosotros S-Drop: Final 's' removed before attaching ${dropReason} → <em>${adjustedVerb}</em>`
+          });
+        }
+      }
+
+      // VOSOTROS 'D' DROP: drop final 'd' before 'os'
+      if (person === 'vosotros' && pronounArray.includes('os')) {
+        // MODULE 2 IDOS EXCEPTION: ir + vosotros + os = idos (not ios)
+        if (inf === 'ir') {
+          adjustedVerb = 'id';
+          adjustedStem = 'i';
+          adjustedEnding = 'd';
+          steps.push({
+            rule: 'Module 2',
+            text: `"Idos" Exception: "ir" Vosotros + "os" → <strong>idos</strong> (NOT "ios"). This is the only -ir verb that keeps the 'd'.`
+          });
+        } else if (adjustedVerb.endsWith('d')) {
+          const beforeDrop = adjustedVerb;
+          adjustedVerb = adjustedVerb.slice(0, -1);
+          if (adjustedEnding.endsWith('d')) {
+            adjustedEnding = adjustedEnding.slice(0, -1);
+          } else if (adjustedStem.endsWith('d')) {
+            adjustedStem = adjustedStem.slice(0, -1);
+          }
+          steps.push({
+            rule: 'Module 2',
+            text: `Vosotros D-Drop: Final 'd' removed before "os" (${beforeDrop} → ${adjustedVerb}). (¡${adjustedVerb}os!)`
+          });
+        }
+      }
+
+      // ── MODULE 4: ACCENT MARK PRECISION ──────────────────────
+      const pronounCount = pronounArray.length;
+      const { needsAccent, accentedVerb, reason } = calculateAccent(adjustedVerb, pronounStr, pronounCount);
+      const totalSyls = countSyllables(adjustedVerb + pronounStr);
+
+      if (needsAccent) {
+        const verbSylCount = countSyllables(adjustedVerb);
+        steps.push({
+          rule: 'Module 4',
+          text: verbSylCount === 1
+            ? `Accent Rule: 1-syllable base ("${adjustedVerb}") with ${pronounCount} pronouns → written accent added: <strong>${accentedVerb}</strong>.`
+            : `Accent Rule: Attaching "${pronounStr}" creates a ${totalSyls}-syllable word. Original stress preserved with accent → <strong>${accentedVerb}</strong>.`
+        });
+        adjustedVerb = accentedVerb;
+        adjustedStem = adjustedVerb.slice(0, adjustedStem.length);
+        adjustedEnding = adjustedVerb.slice(adjustedStem.length);
+      } else {
+        steps.push({
+          rule: 'Module 4',
+          text: `Accent check: ${pronounStr
+            ? (countSyllables(adjustedVerb) === 1 && pronounCount < 2
+                ? `1-syllable base with only 1 pronoun — no written accent needed.`
+                : `Natural stress falls correctly — no written accent needed.`)
+            : 'No pronouns attached.'}`
+        });
+      }
+
+      finalCommand = `¡${adjustedVerb}${pronounStr}!`;
+      result.stemPart = adjustedStem;
+      result.endingPart = adjustedEnding;
+      result.pronounStr = pronounArray;
+      result.verbDisplay = adjustedVerb;
+
+    } else {
+      // Negative: No + pronouns (space-separated) + verb
+      pronounStr = pronounArray.join(' ');
+      finalCommand = `¡No ${pronounStr} ${verbForm}!`;
+      result.stemPart = stemPart;
+      result.endingPart = endingPart;
+      result.pronounStr = pronounArray;
+      result.verbDisplay = verbForm;
+    }
+  } else {
+    finalCommand = mood === 'affirmative' ? `¡${verbForm}!` : `¡No ${verbForm}!`;
+    result.stemPart = stemPart;
+    result.endingPart = endingPart;
+    result.pronounStr = [];
+    result.verbDisplay = verbForm;
+  }
+
+  result.verb = verbForm;
+  result.mood = mood;
+  result.no = mood === 'negative' ? 'No' : '';
+  result.fullCommand = finalCommand;
+
+  steps.push({ rule: '✅ Done', text: `Final command: <strong>${finalCommand}</strong>` });
+
+  return { result, steps };
+}
+
+function getSIDESForm(inf, person, sidesEntry) {
+  if (inf === 'dar') {
+    const map = {
+      tu:       { form: 'des',   stem: 'd', ending: 'es' },
+      vosotros: { form: 'deis',  stem: 'd', ending: 'eis' },
+      ud:       { form: 'dé',    stem: 'd', ending: 'é' },
+      uds:      { form: 'den',   stem: 'd', ending: 'en' },
+      nosotros: { form: 'demos', stem: 'd', ending: 'emos' },
+    };
+    return map[person] || map.ud;
+  }
+  if (inf === 'estar') {
+    const map = {
+      tu:       { form: 'estés',   stem: 'est', ending: 'és' },
+      vosotros: { form: 'estéis',  stem: 'est', ending: 'éis' },
+      ud:       { form: 'esté',    stem: 'est', ending: 'é' },
+      uds:      { form: 'estén',   stem: 'est', ending: 'én' },
+      nosotros: { form: 'estemos', stem: 'est', ending: 'emos' },
+    };
+    return map[person] || map.ud;
+  }
+  if (inf === 'saber') {
+    const map = {
+      tu:       { form: 'sepas',   stem: 'sep', ending: 'as' },
+      vosotros: { form: 'sepáis',  stem: 'sep', ending: 'áis' },
+      ud:       { form: 'sepa',    stem: 'sep', ending: 'a' },
+      uds:      { form: 'sepan',   stem: 'sep', ending: 'an' },
+      nosotros: { form: 'sepamos', stem: 'sep', ending: 'amos' },
+    };
+    return map[person] || map.ud;
+  }
+  return { form: sidesEntry.base, stem: sidesEntry.stem || sidesEntry.base, ending: sidesEntry.ending || '' };
+}
+
+function getSubjunctiveEnding(verbClass, person) {
+  const map = {
+    ar: {
+      tu:       { endingVowel: 'e', fullEnding: 'es' },
+      ud:       { endingVowel: 'e', fullEnding: 'e' },
+      uds:      { endingVowel: 'e', fullEnding: 'en' },
+      nosotros: { endingVowel: 'e', fullEnding: 'emos' },
+      vosotros: { endingVowel: 'e', fullEnding: 'éis' },
+    },
+    er: {
+      tu:       { endingVowel: 'a', fullEnding: 'as' },
+      ud:       { endingVowel: 'a', fullEnding: 'a' },
+      uds:      { endingVowel: 'a', fullEnding: 'an' },
+      nosotros: { endingVowel: 'a', fullEnding: 'amos' },
+      vosotros: { endingVowel: 'a', fullEnding: 'áis' },
+    },
+    ir: {
+      tu:       { endingVowel: 'a', fullEnding: 'as' },
+      ud:       { endingVowel: 'a', fullEnding: 'a' },
+      uds:      { endingVowel: 'a', fullEnding: 'an' },
+      nosotros: { endingVowel: 'a', fullEnding: 'amos' },
+      vosotros: { endingVowel: 'a', fullEnding: 'áis' },
+    },
+  };
+  return (map[verbClass] && map[verbClass][person]) || { endingVowel: 'e', fullEnding: 'e' };
+}
+
+// ── SMART INPUT SANITIZER ────────────────────────────────────
+// Strips pronouns from the end of an input string (e.g. "lavarse" → "lavar" + ["reflexive"])
+// Handles double pronouns (e.g. "dármelo" → "dar" + ["me","lo"])
+// Returns { cleanInf, detectedPronounIds, messages }
+
+// Ordered longest-first so "selos" doesn't match "lo" before "los"
+const SUFFIX_PRONOUN_MAP = [
+  // double-pronoun combos (check these first)
+  { suffix: 'melo',  ids: ['me', 'lo'] },
+  { suffix: 'mela',  ids: ['me', 'lo'] },  // lo covers la too
+  { suffix: 'melos', ids: ['me', 'los'] },
+  { suffix: 'melas', ids: ['me', 'los'] },
+  { suffix: 'telo',  ids: ['te', 'lo'] },
+  { suffix: 'tela',  ids: ['te', 'lo'] },
+  { suffix: 'telos', ids: ['te', 'los'] },
+  { suffix: 'telas', ids: ['te', 'los'] },
+  { suffix: 'selo',  ids: ['reflexive', 'lo'] },
+  { suffix: 'sela',  ids: ['reflexive', 'lo'] },
+  { suffix: 'selos', ids: ['reflexive', 'los'] },
+  { suffix: 'selas', ids: ['reflexive', 'los'] },
+  { suffix: 'noslo', ids: ['nos', 'lo'] },
+  { suffix: 'nosla', ids: ['nos', 'lo'] },
+  // single pronouns
+  { suffix: 'nos',   ids: ['nos'] },
+  { suffix: 'los',   ids: ['los'] },
+  { suffix: 'las',   ids: ['los'] },  // map 'las' to 'los' chip (Los/Las)
+  { suffix: 'les',   ids: ['les'] },
+  { suffix: 'me',    ids: ['me'] },
+  { suffix: 'te',    ids: ['te'] },
+  { suffix: 'se',    ids: ['reflexive'] },
+  { suffix: 'le',    ids: ['le'] },
+  { suffix: 'lo',    ids: ['lo'] },
+  { suffix: 'la',    ids: ['lo'] },  // map 'la' to 'lo' chip (Lo/La)
+  { suffix: 'os',    ids: ['os'] },
+];
+
+// Strip any written accent from a char for matching
+function stripAccent(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function sanitizeInput(rawInput) {
+  // Normalize: trim, lowercase, strip accents for matching only
+  const raw = rawInput.trim();
+  const lower = stripAccent(raw.toLowerCase());
+
+  const result = { cleanInf: raw, detectedPronounIds: [], messages: [] };
+
+  // Only try to strip if it doesn't already look like a clean infinitive
+  const hasCleanEnding = lower.endsWith('ar') || lower.endsWith('er') || lower.endsWith('ir');
+  if (hasCleanEnding) {
+    // Already a clean infinitive — no stripping needed
+    return result;
+  }
+
+  // Try each suffix pattern
+  for (const { suffix, ids } of SUFFIX_PRONOUN_MAP) {
+    if (lower.endsWith(suffix)) {
+      const withoutSuffix = lower.slice(0, lower.length - suffix.length);
+      // Check if what remains is a valid infinitive
+      if (withoutSuffix.endsWith('ar') || withoutSuffix.endsWith('er') || withoutSuffix.endsWith('ir')) {
+        // Preserve original casing of the root portion
+        const cleanInf = raw.slice(0, withoutSuffix.length);
+        const pronounLabels = ids.map(id => {
+          const def = PRONOUNS_DEF.find(p => p.id === id);
+          return def ? def.display : id;
+        });
+        result.cleanInf = cleanInf;
+        result.detectedPronounIds = ids;
+        result.messages.push(`Detected pronoun${ids.length > 1 ? 's' : ''} "${suffix}" — verb: "${cleanInf}", pronoun${ids.length > 1 ? 's' : ''}: ${pronounLabels.join(' + ')} auto-selected.`);
+        return result;
+      }
+    }
+  }
+
+  // No match found — return as-is (engine will validate)
+  return result;
+}
+
+// ── TOAST HELPER ─────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = '🔍 ' + msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+// ── UI SETUP ──────────────────────────────────────────────────
+
+let currentPerson = 'tu';
+let currentMood = 'affirmative';
+let selectedPronounIds = [];
+
+function buildPronounGrid() {
+  const grid = document.getElementById('pronoun-grid');
+  grid.innerHTML = '';
+  PRONOUNS_DEF.forEach(p => {
+    const chip = document.createElement('label');
+    chip.className = 'pronoun-chip';
+    chip.dataset.id = p.id;
+    chip.innerHTML = `
+      <input type="checkbox" value="${p.id}" />
+      <span><strong>${p.display}</strong>${p.label}</span>
+    `;
+    chip.addEventListener('change', (e) => {
+      const cb = e.currentTarget.querySelector('input');
+      if (cb.checked) {
+        selectedPronounIds.push(p.id);
+        chip.classList.add('selected');
+      } else {
+        selectedPronounIds = selectedPronounIds.filter(id => id !== p.id);
+        chip.classList.remove('selected');
+      }
+      triggerBuild();
+    });
+    grid.appendChild(chip);
+  });
+}
+
+function setupToggle(groupId, callback) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      callback(btn.dataset.val);
+    });
+  });
+}
+
+setupToggle('person-toggle', (val) => { currentPerson = val; triggerBuild(); });
+setupToggle('mood-toggle', (val) => { currentMood = val; triggerBuild(); });
+
+buildPronounGrid();
+
+const infinitiveInput = document.getElementById('infinitive-input');
+let debounceTimer;
+infinitiveInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(triggerBuild, 300);
+});
+infinitiveInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') triggerBuild();
+});
+
+document.getElementById('build-btn').addEventListener('click', triggerBuild);
+
+// Apply detected pronoun IDs to checkboxes without re-triggering build
+function applyDetectedPronouns(detectedIds) {
+  // First clear all pronouns silently
+  const grid = document.getElementById('pronoun-grid');
+  grid.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    cb.closest('.pronoun-chip').classList.remove('selected');
+  });
+  selectedPronounIds = [];
+
+  // Then tick the detected ones
+  detectedIds.forEach(id => {
+    const chip = grid.querySelector(`.pronoun-chip[data-id="${id}"]`);
+    if (chip) {
+      const cb = chip.querySelector('input');
+      cb.checked = true;
+      chip.classList.add('selected');
+      if (!selectedPronounIds.includes(id)) selectedPronounIds.push(id);
+    }
+  });
+}
+
+function triggerBuild() {
+  const raw = infinitiveInput.value.trim();
+  if (!raw) { renderEmpty(); return; }
+
+  // ── SMART INPUT SANITIZER ────────────────────────────────
+  const { cleanInf, detectedPronounIds, messages } = sanitizeInput(raw);
+
+  if (detectedPronounIds.length > 0) {
+    // Input had embedded pronouns — auto-apply them to checkboxes
+    applyDetectedPronouns(detectedPronounIds);
+    // Show toast notification
+    if (messages.length > 0) showToast(messages[0]);
+  }
+  // Note: if input is already a clean infinitive, we leave existing checkbox state alone
+  // (user may have manually ticked pronouns they want to keep)
+
+  // Use cleaned infinitive for engine; selectedPronounIds already updated above if needed
+  const infToUse = cleanInf;
+  const { result, steps } = buildCommand(infToUse, currentPerson, currentMood, selectedPronounIds);
+  renderOutput(result, steps, infToUse);
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+
+function renderEmpty() {
+  document.getElementById('command-display').innerHTML = '<div class="empty-state">Enter a verb to begin…</div>';
+  document.getElementById('spell-alert-box').innerHTML = '';
+  document.getElementById('logic-path').innerHTML = `<div class="logic-path-title">🔍 Logic Path</div><div style="color:var(--muted);font-size:0.82rem;">The engine's reasoning will appear here.</div>`;
+}
+
+function personLabel(p) {
+  const map = { tu: 'Tú', vosotros: 'Vosotros', ud: 'Ud.', uds: 'Uds.', nosotros: 'Nosotros' };
+  return map[p] || p;
+}
+
+// ── MODULE 1 UI: SPELLING ALERT BOX ──────────────────────────
+function renderSpellAlert(spellAlert) {
+  const box = document.getElementById('spell-alert-box');
+  if (!spellAlert) { box.innerHTML = ''; return; }
+
+  const typeLabels = {
+    car:     '✏️ Spelling Change — CAR verb',
+    gar:     '✏️ Spelling Change — GAR verb',
+    zar:     '✏️ Spelling Change — ZAR verb',
+    guar:    '✏️ Spelling Change — GUAR verb',
+    ger_gir: '✏️ Spelling Change — GER/GIR verb',
+    guir:    '✏️ Spelling Change — GUIR verb',
+    cer_cir: '✏️ Spelling Change — CER/CIR verb',
+  };
+
+  const title = typeLabels[spellAlert.type] || '✏️ Spelling Change';
+  const changeStr = `'${spellAlert.from}' → '${spellAlert.to}'`;
+
+  box.innerHTML = `
+    <div class="spell-alert animate-in">
+      <span class="spell-alert-icon">⚠️</span>
+      <div>
+        <strong>${title}:</strong> ${changeStr} — ${spellAlert.desc}
+      </div>
+    </div>
+  `;
+}
+
+function renderOutput(result, steps, inf) {
+  const display = document.getElementById('command-display');
+  const logicPath = document.getElementById('logic-path');
+
+  if (!result.success) {
+    display.innerHTML = `<div class="error-msg">⚠️ ${result.error}</div>`;
+    document.getElementById('spell-alert-box').innerHTML = '';
+    logicPath.innerHTML = `<div class="logic-path-title">🔍 Logic Path</div><div class="error-msg">${result.error}</div>`;
+    return;
+  }
+
+  const mood = result.mood;
+  const ps = result.pronounStr || [];
+  const stemPart = result.stemPart || '';
+  const endingPart = result.endingPart || '';
+  const verbDisplay = result.verbDisplay || result.verb || '';
+
+  let coloredStem, coloredEnding;
+  if (stemPart && endingPart && (stemPart + endingPart === verbDisplay)) {
+    coloredStem = stemPart;
+    coloredEnding = endingPart;
+  } else if (endingPart && verbDisplay.endsWith(endingPart)) {
+    coloredStem = verbDisplay.slice(0, verbDisplay.length - endingPart.length);
+    coloredEnding = endingPart;
+  } else {
+    coloredStem = verbDisplay;
+    coloredEnding = '';
+  }
+
+  let html = '<div class="command-text animate-in">';
+  if (mood === 'negative') {
+    html += `<span class="part-no">¡No&nbsp;</span>`;
+    if (ps.length > 0) {
+      html += `<span class="part-pronoun">${ps.join('&nbsp;')}&nbsp;</span>`;
+    }
+    html += `<span class="part-stem">${coloredStem}</span><span class="part-ending">${coloredEnding}</span><span>!</span>`;
+  } else {
+    html += `<span>¡</span>`;
+    html += `<span class="part-stem">${coloredStem}</span><span class="part-ending">${coloredEnding}</span>`;
+    if (ps.length > 0) {
+      html += `<span class="part-pronoun">${ps.join('')}</span>`;
+    }
+    html += `<span>!</span>`;
+  }
+  html += '</div>';
+  html += `<div class="command-label">${personLabel(currentPerson)} · ${mood === 'affirmative' ? '✅ Affirmative' : '🚫 Negative'} · ${(getVerbClass(inf) || '??').toUpperCase()} verb</div>`;
+
+  display.innerHTML = html;
+
+  // ── Render spelling alert (Module 1 UI) ───────────────────
+  renderSpellAlert(result.spellAlert);
+
+  // Logic path
+  let lpHtml = `<div class="logic-path-title">🔍 Logic Path — <em>${inf}</em> → ${personLabel(currentPerson)} ${mood}</div>`;
+  steps.forEach(s => {
+    // Style Module badges differently
+    const isModule = s.rule.startsWith('Module');
+    const badgeStyle = isModule
+      ? 'style="background:rgba(247,162,74,0.15);border-color:var(--spell-color);color:var(--spell-color);"'
+      : '';
+    lpHtml += `
+      <div class="logic-step">
+        <span class="step-badge" ${badgeStyle}>${s.rule}</span>
+        <span>${s.text}</span>
+      </div>
+    `;
+  });
+
+  logicPath.innerHTML = lpHtml;
+}
+
+// Quick example pills
+document.querySelectorAll('.example-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    infinitiveInput.value = pill.dataset.verb;
+    triggerBuild();
+  });
+});
+
+renderEmpty();
+</script>
+</body>
+</html>
