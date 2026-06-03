@@ -1,0 +1,2982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spanish Prepositions Quiz</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #222;
+    }
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.18);
+    }
+    h1 { margin: 0 0 12px; text-align: center; }
+    .card {
+      background: #f7f8fb;
+      border: 1px solid #e6e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 14px 0;
+    }
+    label { font-weight: 650; display: block; margin: 10px 0 6px; }
+    input[type="password"], input[type="text"], select, textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #cfd3e1;
+      outline: none;
+      font-size: 14px;
+      background: white;
+    }
+    textarea {
+      min-height: 160px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 820px) { .row { grid-template-columns: 1fr; } }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: #667eea;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 650;
+    }
+    button:hover { background: #5568d3; }
+    button:disabled { background: #b9bfd9; cursor: not-allowed; }
+    .danger { background: #b42318; }
+    .danger:hover { background: #8f1a11; }
+
+    .muted { color: #566; font-size: 13px; line-height: 1.35; }
+    .ok { color: #1a7f37; font-weight: 650; }
+    .err {
+      background: #fde8e8;
+      border: 1px solid #f5b5b5;
+      color: #8a1f1f;
+      padding: 10px;
+      border-radius: 10px;
+      margin: 10px 0;
+      display: none;
+      white-space: pre-wrap;
+    }
+
+    .setup { display: block; }
+    .setup.hidden { display: none; }
+    .quiz { display: none; }
+    .quiz.active { display: block; }
+
+    .questionBox {
+      background: #eef2ff;
+      border: 1px solid #d9e0ff;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 22px;
+      text-align: center;
+      margin: 12px 0 16px;
+    }
+    .choices { display: grid; gap: 10px; }
+    .choice {
+      border: 1px solid #d7dbe8;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+      cursor: pointer;
+      transition: .15s;
+      user-select: none;
+    }
+    .choice:hover { border-color: #667eea; background: #fafbff; }
+    .choice.selected { border-color: #667eea; background: #eef2ff; }
+    .choice.correct { border-color: #1a7f37; background: #e7f6ec; }
+    .choice.incorrect { border-color: #b42318; background: #fdecec; }
+
+    .feedback {
+      display: none;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+    }
+    .feedback.show { display: block; }
+    .feedback.correct { background: #e7f6ec; border-color: #b7e1c1; color: #155b2b; }
+    .feedback.incorrect { background: #fdecec; border-color: #f3b5b0; color: #7a1b14; }
+
+    .translation {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #fff7db;
+      border: 1px solid #ffe08a;
+      color: #6b4f00;
+    }
+    .translation.show { display: block; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .loading { display: none; text-align: center; padding: 12px; font-weight: 650; color: #334; }
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #eef2ff;
+      border: 1px solid #d9e0ff;
+      border-radius: 999px;
+      font-size: 12px;
+      color: #334;
+    }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .small { font-size: 12px; }
+    .modeList { display: grid; gap: 10px; margin-top: 8px; }
+    .modeItem { border: 1px solid #d7dbe8; border-radius: 10px; padding: 10px; background: #fff; }
+    .modeTitle { font-weight: 650; }
+    code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <h1>Spanish Prepositions Quiz</h1>
+      <span id="modelPill" class="pill">Provider: OpenAI • Model: gpt-5-nano</span>
+    </div>
+
+    <div id="errorBox" class="err"></div>
+
+    <!-- SETUP -->
+    <div id="setup" class="setup">
+      <div class="card">
+        <div class="muted">
+          Uses <code>server.js</code> as a same-origin proxy (avoids browser CORS).
+          Keys are stored in cookies on this device.
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="provider">Provider</label>
+            <select id="provider">
+              <option value="openai">OpenAI</option>
+              <option value="openrouter">OpenRouter</option>
+            </select>
+          </div>
+          <div>
+            <label for="model">Model</label>
+            <input id="model" type="text" value="gpt-5-nano" />
+            <div class="muted small">
+              OpenAI: <code>gpt-5-nano</code><br>
+              OpenRouter often: <code>openai/gpt-5-nano</code>
+            </div>
+          </div>
+        </div>
+
+        <label for="apiKey" id="apiKeyLabel">API Key (saved in cookie)</label>
+        <input id="apiKey" type="password" placeholder="sk-..." />
+        <div class="actions">
+          <button id="saveKeyBtn">Save API Key</button>
+          <button id="clearKeyBtn" class="danger">Clear Saved Key</button>
+          <span id="keyStatus" class="ok" style="display:none;">✓ Saved</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <div>
+            <label for="modeDataModeSelect">Mode Data Editor</label>
+            <select id="modeDataModeSelect"></select>
+            <div class="muted small">Each mode keeps its own formats and dependent data file.</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label id="dependentsFilePickerLabel">Load dependents file (optional)</label>
+            <input id="prepsFile" type="file" accept=".txt" />
+            <div class="muted" id="dependentsFilePickerHint">Auto-loads by mode file name.</div>
+          </div>
+          <div>
+            <label id="formatsFilePickerLabel">Load formats file (optional)</label>
+            <input id="formatsFile" type="file" accept=".txt" />
+            <div class="muted" id="formatsFilePickerHint">Auto-loads by mode formats file name.</div>
+          </div>
+          <div>
+            <label>Load conjugation verbs file (optional)</label>
+            <input id="verbsFile" type="file" accept=".txt" />
+            <div class="muted">Quick-loads this file into Conjugation mode only.</div>
+          </div>
+        </div>
+
+        <label for="prepsText" id="prepsTextLabel">preps.txt content</label>
+        <textarea id="prepsText" placeholder="Paste preps.txt here..."></textarea>
+        <div class="actions">
+          <button id="savePrepsBtn">Save Dependents</button>
+          <span id="prepsStatus" class="ok" style="display:none;">✓ Saved</span>
+        </div>
+
+        <label for="formatsText" id="formatsTextLabel">formats.txt content</label>
+        <textarea id="formatsText" placeholder="Paste formats.txt here..."></textarea>
+        <div class="actions">
+          <button id="saveFormatsBtn">Save Formats</button>
+          <span id="formatsStatus" class="ok" style="display:none;">✓ Saved</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <label for="showEnglishCueToggle">Question Hint Mode</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input id="showEnglishCueToggle" type="checkbox" checked />
+          <span>Show English cue in brackets (example: <code>[near]</code>)</span>
+        </div>
+        <div class="muted small">Turn this off for Spanish-only blanks without bracketed English hints.</div>
+
+        <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+          <input id="showTenseHintToggle" type="checkbox" checked />
+          <span>Show tense hint for conjugation questions</span>
+        </div>
+        <div class="muted small">Subjunctive questions keep tense ambiguous so learners identify mood from context.</div>
+
+        <label for="reflexiveChanceInput" style="margin-top:12px;">Reflexive Conjugation Chance (%)</label>
+        <input id="reflexiveChanceInput" type="range" min="0" max="100" step="1" value="0" />
+        <div class="muted small">Current: <span id="reflexiveChanceValue">0</span>%</div>
+        <div class="muted small">For Conjugation mode only: chance that a generated item is adapted as a reflexive verb form.</div>
+
+        <div style="margin-top:10px; display:flex; align-items:center; gap:8px;">
+          <input id="showConjWalkthroughToggle" type="checkbox" checked />
+          <span>Show step-by-step conjugation walkthrough menu after answering</span>
+        </div>
+        <div class="muted small">Adds a guided step menu for conjugation answers.</div>
+
+        <label style="margin-top:14px;">Practice Modes</label>
+        <div id="modesList" class="modeList"></div>
+        <div class="muted small">Mode framework is ready. Specific modes can be added later.</div>
+      </div>
+
+      <div class="card">
+        <button id="startBtn" style="width:100%; padding: 14px; font-size: 16px;">Start Quiz</button>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="quiz" class="quiz">
+      <div id="loading" class="loading">Generating question…</div>
+
+      <div id="quizBody" style="display:none;">
+        <div id="question" class="questionBox"></div>
+        <div id="questionMeta" class="muted" style="margin-top:-8px; margin-bottom:10px; text-align:center;"></div>
+        <div id="choices" class="choices"></div>
+
+        <div id="feedback" class="feedback"></div>
+        <div id="translation" class="translation"></div>
+        <div id="walkthroughPanel" class="translation" style="display:none;"></div>
+
+        <div class="actions">
+          <button id="submitBtn" disabled>Submit Answer</button>
+          <button id="walkthroughBtn" style="display:none; background:#334155;">Walkthrough Menu</button>
+          <button id="ackBtn" style="display:none;">Got it!</button>
+          <button id="nextBtn" style="display:none;">Next Question</button>
+          <button id="backBtn" style="background:#475569;">Back to Setup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ---------------- Cookies ----------------
+  function setCookie(name, value, days = 365) {
+    const d = new Date();
+    d.setTime(d.getTime() + days*24*60*60*1000);
+    document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+  }
+  function getCookie(name) {
+    const encodedName = encodeURIComponent(name) + "=";
+    const parts = document.cookie.split(";").map(s => s.trim());
+    for (const p of parts) if (p.startsWith(encodedName)) return decodeURIComponent(p.slice(encodedName.length));
+    return null;
+  }
+  function deleteCookie(name) {
+    document.cookie = `${encodeURIComponent(name)}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax`;
+  }
+
+  // ---------------- DOM ----------------
+  const errorBox = document.getElementById("errorBox");
+  const setup = document.getElementById("setup");
+  const quiz = document.getElementById("quiz");
+  const loading = document.getElementById("loading");
+  const quizBody = document.getElementById("quizBody");
+
+  const providerEl = document.getElementById("provider");
+  const modelEl = document.getElementById("model");
+  const modelPill = document.getElementById("modelPill");
+  const apiKeyLabel = document.getElementById("apiKeyLabel");
+  const apiKeyInput = document.getElementById("apiKey");
+  const keyStatus = document.getElementById("keyStatus");
+
+  const prepsText = document.getElementById("prepsText");
+  const formatsText = document.getElementById("formatsText");
+  const prepsTextLabel = document.getElementById("prepsTextLabel");
+  const formatsTextLabel = document.getElementById("formatsTextLabel");
+  const dependentsFilePickerLabel = document.getElementById("dependentsFilePickerLabel");
+  const formatsFilePickerLabel = document.getElementById("formatsFilePickerLabel");
+  const dependentsFilePickerHint = document.getElementById("dependentsFilePickerHint");
+  const formatsFilePickerHint = document.getElementById("formatsFilePickerHint");
+  const modeDataModeSelect = document.getElementById("modeDataModeSelect");
+  const prepsStatus = document.getElementById("prepsStatus");
+  const formatsStatus = document.getElementById("formatsStatus");
+
+  const questionEl = document.getElementById("question");
+  const questionMetaEl = document.getElementById("questionMeta");
+  const choicesEl = document.getElementById("choices");
+  const feedbackEl = document.getElementById("feedback");
+  const translationEl = document.getElementById("translation");
+
+  const submitBtn = document.getElementById("submitBtn");
+  const ackBtn = document.getElementById("ackBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const backBtn = document.getElementById("backBtn");
+  const walkthroughBtn = document.getElementById("walkthroughBtn");
+  const showEnglishCueToggle = document.getElementById("showEnglishCueToggle");
+  const showTenseHintToggle = document.getElementById("showTenseHintToggle");
+  const reflexiveChanceInput = document.getElementById("reflexiveChanceInput");
+  const reflexiveChanceValue = document.getElementById("reflexiveChanceValue");
+  const showConjWalkthroughToggle = document.getElementById("showConjWalkthroughToggle");
+  const walkthroughPanel = document.getElementById("walkthroughPanel");
+  const modesList = document.getElementById("modesList");
+
+  // ---------------- State ----------------
+  const modeDataById = {}; // { [modeId]: { dependentsText, formatsText, parsed } }
+
+  let current = null; // { sentenceBlank, correct, options, selected, sentenceFilled, prepLine }
+  let prefetchedQuestion = null;
+  let prefetchPromise = null;
+  let walkthroughStepIndex = 0;
+
+  const DONT_KNOW_OPTION = "Don't know";
+
+  const MODE_DEFS = [
+    {
+      id: "prepositions",
+      label: "Prepositions",
+      subject: "prepositions",
+      requiresFormats: true,
+      dependentsFileName: "preps.txt",
+      formatsFileName: "formats.txt",
+      dependentsStorageKey: "mode_prepositions_dependents_data",
+      formatsStorageKey: "mode_prepositions_formats_data",
+      dependentsCookieName: "mode_prepositions_dependents_data",
+      formatsCookieName: "mode_prepositions_formats_data",
+      promptFlavor: "Generate natural fill-in-the-blank Spanish preposition questions.",
+      answerDependency: "The answer must be the single best candidate preposition for context and grammar.",
+      examples: ["El edificio esta [near] ______."]
+    },
+    {
+      id: "verb_vocab",
+      label: "General Vocab",
+      subject: "verb_vocab",
+      requiresFormats: true,
+      dependentsFileName: "vocab.txt",
+      formatsFileName: "vocab_formats.txt",
+      dependentsStorageKey: "mode_verb_vocab_dependents_data",
+      formatsStorageKey: "mode_verb_vocab_formats_data",
+      dependentsCookieName: "mode_verb_vocab_dependents_data",
+      formatsCookieName: "mode_verb_vocab_formats_data",
+      promptFlavor: "Ask for the vocabulary term from an English definition clue.",
+      answerDependency: "The answer must be the single best vocabulary term that matches the displayed definition.",
+      examples: ["kitchen sink?", "to be remaining?"]
+    },
+    {
+      id: "conjugation",
+      label: "Conjugation",
+      subject: "conjugation",
+      requiresFormats: true,
+      dependentsFileName: "conjugation_verbs.txt",
+      formatsFileName: "conjugation_formats.txt",
+      dependentsStorageKey: "mode_conjugation_dependents_data",
+      formatsStorageKey: "mode_conjugation_formats_data",
+      dependentsCookieName: "mode_conjugation_dependents_data",
+      formatsCookieName: "mode_conjugation_formats_data",
+      promptFlavor: "Give a sentence with infinitive in parentheses and ask for the correct conjugated form.",
+      answerDependency: "Only one option should match subject, tense, mood, spelling, accenting, and irregular rules.",
+      examples: ["Espero que (tener) ______ tiempo.", "Ayer yo (caer) ______ en la calle."]
+    },
+    {
+      id: "chac_mool",
+      label: "Chac Mool Practice",
+      subject: "chac_mool",
+      requiresFormats: false,
+      dependentsFileName: "chac_mool_excerpts.txt",
+      formatsFileName: "chac_mool_formats.txt",
+      dependentsStorageKey: "mode_chac_mool_dependents_data",
+      formatsStorageKey: "mode_chac_mool_formats_data",
+      dependentsCookieName: "mode_chac_mool_dependents_data",
+      formatsCookieName: "mode_chac_mool_formats_data",
+      promptFlavor: "Create a comprehension question from a provided Chac Mool excerpt.",
+      answerDependency: "Only one option should be best-supported by the excerpt.",
+      examples: ["What best explains the narrator's reaction in this passage?"]
+    },
+    {
+      id: "grammar_identify",
+      label: "Identificacion gramatical",
+      subject: "grammar_identify",
+      requiresFormats: false,
+      dependentsFileName: "grammar_items.txt",
+      formatsFileName: "grammar_formats.txt",
+      dependentsStorageKey: "mode_grammar_identify_dependents_data",
+      formatsStorageKey: "mode_grammar_identify_formats_data",
+      dependentsCookieName: "mode_grammar_identify_dependents_data",
+      formatsCookieName: "mode_grammar_identify_formats_data",
+      promptFlavor: "Identificar el tipo gramatical de un ejemplo en espanol.",
+      answerDependency: "Solo una categoria gramatical debe ser la mejor respuesta.",
+      examples: ["Aunque llueva, iremos.", "Cierra la puerta."]
+    }
+  ];
+
+  function getFallbackMode() {
+    return MODE_DEFS[0];
+  }
+
+  function getDefaultModeIds() {
+    return MODE_DEFS.map(m => m.id);
+  }
+
+  function getSavedModeIds() {
+    const raw = localStorage.getItem("selected_modes");
+    if (!raw) return getDefaultModeIds();
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return getDefaultModeIds();
+      const valid = parsed.filter(id => MODE_DEFS.some(m => m.id === id));
+      return valid.length ? valid : getDefaultModeIds();
+    } catch {
+      return getDefaultModeIds();
+    }
+  }
+
+  function getSelectedModeIds() {
+    return Array.from(document.querySelectorAll('input[name="modeIds"]:checked')).map(el => el.value);
+  }
+
+  function getSelectedModes() {
+    const ids = getSelectedModeIds();
+    return MODE_DEFS.filter(m => ids.includes(m.id));
+  }
+
+  function saveModeIds(ids) {
+    localStorage.setItem("selected_modes", JSON.stringify(ids));
+  }
+
+  function renderModesUI() {
+    const selectedIds = new Set(getSavedModeIds());
+    modesList.innerHTML = "";
+
+    if (!MODE_DEFS.length) {
+      const empty = document.createElement("div");
+      empty.className = "muted small";
+      empty.textContent = "No modes added yet.";
+      modesList.appendChild(empty);
+      return;
+    }
+
+    MODE_DEFS.forEach(mode => {
+      const item = document.createElement("label");
+      item.className = "modeItem";
+
+      const checked = selectedIds.has(mode.id) ? "checked" : "";
+      item.innerHTML =
+        `<div style="display:flex; align-items:flex-start; gap:8px;">` +
+          `<input type="checkbox" name="modeIds" value="${mode.id}" ${checked} style="margin-top:2px;" />` +
+          `<div>` +
+            `<div class="modeTitle">${mode.label}</div>` +
+            `<div class="muted small">${mode.promptFlavor}</div>` +
+            `<div class="muted small">Examples: ${mode.examples.join(" | ")}</div>` +
+            `<div class="muted small">Answer rule: ${mode.answerDependency}</div>` +
+          `</div>` +
+        `</div>`;
+      modesList.appendChild(item);
+    });
+  }
+
+  function getModeById(modeId) {
+    return MODE_DEFS.find(m => m.id === modeId) || getFallbackMode();
+  }
+
+  function getParsedForMode(mode, dependentsText, formatsText) {
+    if (mode.subject === "prepositions") {
+      return {
+        prepsEntries: parsePreps(dependentsText),
+        formatsLines: parseFormats(formatsText),
+        verbEntries: [],
+        chacMoolEntries: [],
+        grammarEntries: []
+      };
+    }
+    if (mode.subject === "verb_vocab") {
+      return {
+        prepsEntries: [],
+        formatsLines: parseFormats(formatsText),
+        verbEntries: parseVerbs(dependentsText),
+        chacMoolEntries: [],
+        grammarEntries: []
+      };
+    }
+    if (mode.subject === "conjugation") {
+      return {
+        prepsEntries: [],
+        formatsLines: parseFormats(formatsText),
+        verbEntries: parseVerbs(dependentsText),
+        chacMoolEntries: [],
+        grammarEntries: []
+      };
+    }
+    if (mode.subject === "chac_mool") {
+      return {
+        prepsEntries: [],
+        formatsLines: parseFormats(formatsText),
+        verbEntries: [],
+        chacMoolEntries: parseChacMoolExcerpts(dependentsText),
+        grammarEntries: []
+      };
+    }
+    if (mode.subject === "grammar_identify") {
+      return {
+        prepsEntries: [],
+        formatsLines: parseFormats(formatsText),
+        verbEntries: [],
+        chacMoolEntries: [],
+        grammarEntries: parseGrammarItems(dependentsText)
+      };
+    }
+    return { prepsEntries: [], formatsLines: [], verbEntries: [], chacMoolEntries: [], grammarEntries: [] };
+  }
+
+  function getModeData(modeId) {
+    const mode = getModeById(modeId);
+    if (!modeDataById[mode.id]) {
+      modeDataById[mode.id] = {
+        dependentsText: "",
+        formatsText: "",
+        parsed: { prepsEntries: [], formatsLines: [], allSpanishOptions: [], verbEntries: [], chacMoolEntries: [], grammarEntries: [] }
+      };
+    }
+    return modeDataById[mode.id];
+  }
+
+  function refreshModeParsedData(modeId) {
+    const mode = getModeById(modeId);
+    const data = getModeData(mode.id);
+    const parsed = getParsedForMode(mode, data.dependentsText, data.formatsText);
+    const allSpanishOptions = mode.subject === "prepositions"
+      ? Array.from(new Set(parsed.prepsEntries.flatMap(e => e.spanish)))
+      : [];
+    data.parsed = { ...parsed, allSpanishOptions };
+    return data.parsed;
+  }
+
+  function renderModeDataEditorOptions() {
+    modeDataModeSelect.innerHTML = "";
+    MODE_DEFS.forEach(mode => {
+      const opt = document.createElement("option");
+      opt.value = mode.id;
+      opt.textContent = mode.label;
+      modeDataModeSelect.appendChild(opt);
+    });
+  }
+
+  function syncModeDataEditorUI() {
+    const mode = getModeById(modeDataModeSelect.value || getFallbackMode().id);
+    const data = getModeData(mode.id);
+
+    prepsTextLabel.textContent = `${mode.dependentsFileName} content`;
+    formatsTextLabel.textContent = mode.subject === "prepositions"
+      ? `${mode.formatsFileName} content`
+      : `${mode.formatsFileName} content (optional for now)`;
+
+    dependentsFilePickerLabel.textContent = `Load ${mode.dependentsFileName} (optional)`;
+    dependentsFilePickerHint.innerHTML = `Or place <code>${mode.dependentsFileName}</code> next to <code>index.html</code> to auto-load.`;
+    formatsFilePickerLabel.textContent = `Load ${mode.formatsFileName} (optional)`;
+    formatsFilePickerHint.innerHTML = `Or place <code>${mode.formatsFileName}</code> next to <code>index.html</code> to auto-load.`;
+
+    prepsText.value = data.dependentsText || "";
+    formatsText.value = data.formatsText || "";
+    formatsText.disabled = !mode.requiresFormats;
+    document.getElementById("saveFormatsBtn").disabled = !mode.requiresFormats;
+
+    const dependentsLoaded = mode.subject === "prepositions"
+      ? data.parsed.prepsEntries.length
+      : mode.subject === "chac_mool"
+        ? data.parsed.chacMoolEntries.length
+        : mode.subject === "grammar_identify"
+          ? data.parsed.grammarEntries.length
+        : data.parsed.verbEntries.length;
+    const formatsLoaded = mode.requiresFormats
+      ? data.parsed.formatsLines.length
+      : false;
+
+    prepsStatus.style.display = dependentsLoaded ? "inline" : "none";
+    formatsStatus.style.display = formatsLoaded ? "inline" : "none";
+  }
+
+  // ---------------- UI helpers ----------------
+  function showError(msg) { errorBox.style.display = "block"; errorBox.textContent = msg; }
+  function clearError() { errorBox.style.display = "none"; errorBox.textContent = ""; }
+
+  function providerKeyCookieName(provider) {
+    return provider === "openrouter" ? "openrouter_api_key" : "openai_api_key";
+  }
+  function providerDisplayName(provider) {
+    return provider === "openrouter" ? "OpenRouter" : "OpenAI";
+  }
+
+  function normalizeText(s) {
+    return (s || "")
+      .trim()
+      .replace(/\r/g, "")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n");
+  }
+
+  function parseNumberedLines(text) {
+    return text.split("\n").map(l => l.trim()).filter(l => /^\d+\.\s*/.test(l));
+  }
+
+  function parsePreps(text) {
+    const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+    const entries = [];
+
+    for (const line of lines) {
+      const noNum = line.replace(/^\d+\.\s*/, "").trim();
+      const idx = noNum.indexOf(" - ");
+      if (idx === -1) continue;
+
+      const left = noNum.slice(0, idx).trim();
+      const right = noNum.slice(idx + 3).trim();
+
+      const englishKeyRaw = left.split("(")[0].trim();
+      const englishKeyLower = englishKeyRaw.toLowerCase();
+
+      const spanish = right
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(s => s.replace(/\s*\(.*?\)\s*/g, "").trim())
+        .filter(Boolean);
+
+      if (!englishKeyRaw || spanish.length === 0) continue;
+      entries.push({ englishKeyRaw, englishKeyLower, spanish, rawLine: noNum, numberedLine: line });
+    }
+
+    return entries;
+  }
+
+  function parseFormats(text) {
+    return text.split("\n")
+      .map(l => l.trim())
+      .filter(Boolean)
+      .map(l => l.replace(/^\d+\.\s*/, "").trim())
+      .filter(Boolean);
+  }
+
+  function parseVerbs(text) {
+    const lines = text
+      .split("\n")
+      .map(l => l.trim())
+      .filter(Boolean);
+
+    const entries = [];
+    for (const line of lines) {
+      const noNum = line.replace(/^\d+\.\s*/, "").trim();
+      const idx = noNum.indexOf(" - ");
+      if (idx === -1) continue;
+
+      const verb = noNum.slice(0, idx).trim();
+      const defsRaw = noNum.slice(idx + 3).trim();
+      const definitions = defsRaw
+        .split(";")
+        .map(x => x.trim())
+        .map(x => x.replace(/^\((.*?)\)\s*/, "").trim())
+        .filter(Boolean);
+
+      if (!verb || !definitions.length) continue;
+      entries.push({
+        verb,
+        verbLower: verb.toLowerCase(),
+        definitions,
+        rawLine: line
+      });
+    }
+
+    return entries;
+  }
+
+  function parseChacMoolExcerpts(text) {
+    const src = (text || "").replace(/\r/g, "");
+    const out = [];
+    const re = /(?:^|\n)\s*(\d+)\.\s*([\s\S]*?)(?=\n\s*\d+\.\s*|$)/g;
+    let m;
+    while ((m = re.exec(src)) !== null) {
+      const n = Number(m[1]);
+      const body = (m[2] || "").trim();
+      if (!n || !body) continue;
+      out.push({ index: n, text: body });
+    }
+    return out;
+  }
+
+  function parseChacMoolBlock(text) {
+    const t = normalizeText(text);
+    function capture(label) {
+      const re = new RegExp(
+        String.raw`(?:^|\n)\s*${label}\s*[:=]\s*([\s\S]*?)(?=\n\s*(QUESTION|CORRECT|OPTIONS|EXPLANATION)\s*[:=]|\s*$)`,
+        "i"
+      );
+      const m = t.match(re);
+      if (!m) return "";
+      return m[1].trim();
+    }
+    return {
+      question: capture("QUESTION"),
+      correct: capture("CORRECT"),
+      optionsRaw: capture("OPTIONS"),
+      explanation: capture("EXPLANATION")
+    };
+  }
+
+  const GRAMMAR_TYPES = [
+    "frase",
+    "clausula dependiente",
+    "clausula independiente",
+    "oracion simple",
+    "oracion compuesta",
+    "oracion compuesta-compleja",
+    "mandato"
+  ];
+
+  const GRAMMAR_TYPE_EXPLANATIONS = {
+    "frase": "Una frase no tiene verbo conjugado principal con sentido completo; funciona como grupo de palabras nominal o preposicional.",
+    "clausula dependiente": "Una clausula dependiente tiene sujeto y verbo, pero no expresa idea completa por si sola y depende de otra clausula.",
+    "clausula independiente": "Una clausula independiente tiene sujeto y verbo y puede funcionar como enunciado completo por si sola.",
+    "oracion simple": "Una oracion simple tiene un solo verbo principal conjugado (o un solo predicado nuclear).",
+    "oracion compuesta": "Una oracion compuesta une dos o mas clausulas independientes mediante coordinacion o signos de puntuacion.",
+    "oracion compuesta-compleja": "Una oracion compuesta-compleja combina al menos una clausula independiente y al menos una clausula dependiente, ademas de otra clausula coordinada o estructura compuesta.",
+    "mandato": "Un mandato expresa orden, instruccion, consejo o peticion directa, normalmente en modo imperativo."
+  };
+
+  const GRAMMAR_FALLBACK_ITEMS = [
+    { text: "Polvo en el viento", type: "frase" },
+    { text: "Aunque llegues tarde", type: "clausula dependiente" },
+    { text: "La puerta esta cerrada", type: "clausula independiente" },
+    { text: "El gato duerme en la silla", type: "oracion simple" },
+    { text: "Ana cocino y Luis lavo los platos", type: "oracion compuesta" },
+    { text: "Aunque llovia, salimos y compramos pan", type: "oracion compuesta-compleja" },
+    { text: "Guarda tu cuaderno ahora", type: "mandato" }
+  ];
+
+  function normalizeGrammarType(type) {
+    const t = (type || "").trim().toLowerCase();
+    if (!t) return "";
+    const mapping = {
+      "frase": "frase",
+      "clausula dependiente": "clausula dependiente",
+      "clausula independiente": "clausula independiente",
+      "oracion simple": "oracion simple",
+      "oracion compuesta": "oracion compuesta",
+      "oracion compuesta compleja": "oracion compuesta-compleja",
+      "oracion compuesta-compleja": "oracion compuesta-compleja",
+      "mandato": "mandato"
+    };
+    return mapping[t] || "";
+  }
+
+  function parseGrammarItems(text) {
+    const lines = (text || "").split("\n").map(l => l.trim()).filter(Boolean);
+    const out = [];
+    for (const line of lines) {
+      const noNum = line.replace(/^\d+\.\s*/, "").trim();
+      let sep = "|";
+      if (!noNum.includes("|")) sep = " - ";
+      if (!noNum.includes(sep)) continue;
+      const idx = noNum.lastIndexOf(sep);
+      if (idx <= 0) continue;
+      const textPart = noNum.slice(0, idx).trim();
+      const typePart = normalizeGrammarType(noNum.slice(idx + sep.length).trim());
+      if (!textPart || !typePart) continue;
+      out.push({ text: textPart, type: typePart });
+    }
+    return out;
+  }
+
+  function isLikelySpanishText(text) {
+    const t = (text || "").trim().toLowerCase();
+    if (!t) return false;
+    if (/[áéíóúñ¿¡]/i.test(t)) return true;
+    const spanishMarkers = [" que ", " cual ", " como ", " porque ", " segun ", " narrador ", " pasaje ", " texto ", " personaje "];
+    const padded = ` ${t} `;
+    return spanishMarkers.some(m => padded.includes(m));
+  }
+
+  function isWeakChacQuestion(question) {
+    const q = (question || "").trim().toLowerCase();
+    if (!q) return true;
+    const banned = [
+      "what is best supported by this excerpt",
+      "which is best supported by this excerpt",
+      "best supported by this excerpt",
+      "que detalle del fragmento apoya mejor la interpretacion correcta",
+      "what is best supported",
+      "excerpt #",
+      "section #"
+    ];
+    if (banned.some(x => q.includes(x))) return true;
+    if (/(\bwhat\b|\bwhich\b|\bexcerpt\b|\bsection\b)/i.test(q)) return true;
+    if (/(numero|seccion|linea)\s*\d+/i.test(q)) return true;
+    if (!isLikelySpanishText(q)) return true;
+    return false;
+  }
+
+  function isHappeningsFocused(question) {
+    const q = (question || "").toLowerCase();
+    if (!q) return false;
+
+    // Reject literary-analysis framing when user wants event/happening checks.
+    const analysisTerms = [
+      "estructura",
+      "narrador",
+      "tono",
+      "simbolo",
+      "simbolico",
+      "tecnica",
+      "estilo",
+      "recurso",
+      "metafora",
+      "perspectiva"
+    ];
+    if (analysisTerms.some(t => q.includes(t))) return false;
+
+    // Prefer concrete event framing.
+    const eventTerms = [
+      "que sucede",
+      "que pasa",
+      "que ocurre",
+      "que hace",
+      "quien",
+      "cuando",
+      "donde",
+      "despues",
+      "antes",
+      "accion",
+      "evento",
+      "hace"
+    ];
+    return eventTerms.some(t => q.includes(t));
+  }
+
+  function extractBracket(formatLine) {
+    const m = formatLine.match(/\[([^\]]+)\]/);
+    if (!m) return null;
+    return { bracketRaw: m[1], bracketFull: m[0] };
+  }
+
+  function splitEnglishCandidates(bracketRaw) {
+    const s = bracketRaw.toLowerCase().trim();
+    return s
+      .replace(/\bor\b/g, "/")
+      .split("/")
+      .map(x => x.trim())
+      .filter(Boolean);
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function resetQuestionUI() {
+    current = null;
+    walkthroughStepIndex = 0;
+
+    questionEl.textContent = "";
+    questionMetaEl.textContent = "";
+    choicesEl.innerHTML = "";
+
+    feedbackEl.className = "feedback";
+    feedbackEl.style.display = "none";
+    feedbackEl.innerHTML = "";
+
+    translationEl.className = "translation";
+    translationEl.style.display = "none";
+    translationEl.innerHTML = "";
+
+    walkthroughPanel.className = "translation";
+    walkthroughPanel.style.display = "none";
+    walkthroughPanel.innerHTML = "";
+
+    submitBtn.disabled = true;
+    submitBtn.style.display = "inline-block";
+    walkthroughBtn.style.display = "none";
+    ackBtn.style.display = "none";
+    nextBtn.style.display = "none";
+  }
+
+  function renderQuestion() {
+    questionEl.textContent = current.sentenceBlank;
+    questionMetaEl.textContent = current.questionMeta || "";
+    choicesEl.innerHTML = "";
+    submitBtn.disabled = true;
+
+    const renderedOptions = current.options.slice();
+    if (!renderedOptions.some(o => o === DONT_KNOW_OPTION)) renderedOptions.push(DONT_KNOW_OPTION);
+
+    renderedOptions.forEach(opt => {
+      const div = document.createElement("div");
+      div.className = "choice";
+      div.textContent = opt;
+      div.dataset.value = opt;
+      div.addEventListener("click", () => {
+        document.querySelectorAll(".choice").forEach(c => c.classList.remove("selected"));
+        div.classList.add("selected");
+        current.selected = opt;
+        submitBtn.disabled = false;
+      });
+      choicesEl.appendChild(div);
+    });
+  }
+
+  function lockChoicesAndMark() {
+    document.querySelectorAll(".choice").forEach(div => {
+      div.style.cursor = "default";
+      div.style.pointerEvents = "none";
+      const v = div.dataset.value;
+      if (v === current.correct) div.classList.add("correct");
+      if (v === current.selected && v !== current.correct && v !== DONT_KNOW_OPTION) div.classList.add("incorrect");
+    });
+  }
+
+  function buildConjugationWalkthroughSteps({ infinitive, tenseLabel, subjectObj, correct }) {
+    const steps = [];
+    const reflexive = isReflexiveInfinitive(infinitive);
+    const baseVerb = stripReflexive(infinitive);
+    const detail = conjugateSpanishVerbDetailed(infinitive, tenseLabel, subjectObj);
+    steps.push(`Step 1: Identify infinitive and base form. Infinitive is ${infinitive}. Base verb is ${baseVerb}.`);
+    steps.push(`Step 2: Identify subject. Subject is ${subjectObj.text}, which is ${subjectObj.person} person ${subjectObj.number}.`);
+    steps.push(`Step 3: Identify target tense/mood. This item uses ${tenseLabel}.`);
+    if (reflexive) {
+      steps.push(`Step 4: Reflexive handling. Use pronoun ${reflexivePronounForSubject(subjectObj)} for this subject.`);
+    } else {
+      steps.push("Step 4: Non-reflexive handling. No reflexive pronoun is added.");
+    }
+    if (Array.isArray(detail.steps) && detail.steps.length) {
+      detail.steps.forEach((s, i) => steps.push(`Step ${5 + i}: ${s}`));
+    } else {
+      steps.push("Step 5: Conjugate the verb core locally according to tense rules and irregularity patterns.");
+    }
+    steps.push(`Step ${steps.length + 1}: Build final answer form. Correct answer is ${correct}.`);
+    steps.push(getIrregularityAlert({ infinitive, tenseLabel, subjectObj }));
+    return steps;
+  }
+
+  function renderWalkthroughPanel() {
+    if (!current?.isConjugation || !Array.isArray(current?.conjugationSteps) || !current.conjugationSteps.length) return;
+    walkthroughStepIndex = Math.max(0, Math.min(walkthroughStepIndex, current.conjugationSteps.length - 1));
+
+    walkthroughPanel.innerHTML = "";
+    walkthroughPanel.className = "translation show";
+    walkthroughPanel.style.display = "block";
+
+    const title = document.createElement("div");
+    title.innerHTML = "<strong>Conjugation Walkthrough</strong>";
+
+    const progress = document.createElement("div");
+    progress.className = "muted";
+    progress.style.marginTop = "6px";
+    progress.textContent = `Step ${walkthroughStepIndex + 1} of ${current.conjugationSteps.length}`;
+
+    const body = document.createElement("div");
+    body.style.marginTop = "8px";
+    body.textContent = current.conjugationSteps[walkthroughStepIndex];
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+    actions.style.marginTop = "10px";
+
+    const prev = document.createElement("button");
+    prev.textContent = "Previous Step";
+    prev.disabled = walkthroughStepIndex === 0;
+    prev.addEventListener("click", () => {
+      walkthroughStepIndex = Math.max(0, walkthroughStepIndex - 1);
+      renderWalkthroughPanel();
+    });
+
+    const next = document.createElement("button");
+    next.textContent = "Next Step";
+    next.disabled = walkthroughStepIndex >= current.conjugationSteps.length - 1;
+    next.addEventListener("click", () => {
+      walkthroughStepIndex = Math.min(current.conjugationSteps.length - 1, walkthroughStepIndex + 1);
+      renderWalkthroughPanel();
+    });
+
+    actions.appendChild(prev);
+    actions.appendChild(next);
+
+    walkthroughPanel.appendChild(title);
+    walkthroughPanel.appendChild(progress);
+    walkthroughPanel.appendChild(body);
+    walkthroughPanel.appendChild(actions);
+  }
+
+  function setPrepositionBox({ prepLine, sentenceFilled, detailNotes, sourceExcerpt, sourceTitle }) {
+    translationEl.innerHTML = "";
+    const p1 = document.createElement("div");
+    p1.innerHTML = "<strong>Chosen answer:</strong>";
+    const p2 = document.createElement("div");
+    p2.style.marginTop = "6px";
+    p2.textContent = prepLine || "(preposition line unavailable)";
+
+    const s = document.createElement("div");
+    s.className = "muted";
+    s.style.marginTop = "10px";
+    const sInner = document.createElement("span");
+    sInner.className = "mono";
+    sInner.textContent = sentenceFilled || "";
+    s.appendChild(sInner);
+
+    const d = document.createElement("div");
+    d.className = "muted";
+    d.style.marginTop = "8px";
+    d.textContent = detailNotes || "";
+
+    const srcWrap = document.createElement("div");
+    srcWrap.style.marginTop = "10px";
+    srcWrap.style.display = sourceExcerpt ? "block" : "none";
+
+    const srcTitle = document.createElement("div");
+    srcTitle.innerHTML = `<strong>${sourceTitle || "Texto del fragmento"}:</strong>`;
+
+    const srcBody = document.createElement("div");
+    srcBody.className = "mono";
+    srcBody.style.marginTop = "6px";
+    srcBody.style.whiteSpace = "pre-wrap";
+    srcBody.textContent = sourceExcerpt || "";
+
+    srcWrap.appendChild(srcTitle);
+    srcWrap.appendChild(srcBody);
+
+    translationEl.appendChild(p1);
+    translationEl.appendChild(p2);
+    translationEl.appendChild(s);
+    if (detailNotes) translationEl.appendChild(d);
+    if (sourceExcerpt) translationEl.appendChild(srcWrap);
+  }
+
+  // ---------------- LLM ----------------
+  async function callLLM({ system, prompt, max_tokens = 220, temperature = 0.0, timeoutMs = 25000, responseFormat = null }) {
+    const provider = providerEl.value;
+    const model = modelEl.value.trim();
+    const cookieName = providerKeyCookieName(provider);
+    const apiKey = getCookie(cookieName);
+
+    if (!apiKey) throw new Error(`Missing ${providerDisplayName(provider)} API key.`);
+    if (!model) throw new Error("Missing model.");
+
+    const r = await fetch("/api/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider, apiKey, model, system, prompt, max_tokens, temperature, timeoutMs, responseFormat })
+    });
+
+    if (!r.ok) {
+      const t = await r.text();
+      throw new Error(`Proxy/${providerDisplayName(provider)} error (${r.status}):\n${t}`);
+    }
+
+    const data = await r.json();
+    return (data.text || "").trim();
+  }
+
+  function parseChoiceOnly(text) {
+    const t = normalizeText(text);
+    const m = t.match(/(?:^|\n)\s*CHOICE\s*[:=]\s*(.+?)(?:\n|$)/i);
+    if (m && m[1]) return m[1].trim();
+    return t.split("\n").map(x => x.trim()).find(Boolean) || "";
+  }
+
+  function parseSentenceAndChoice(text) {
+    const t = normalizeText(text);
+
+    function capture(label) {
+      const re = new RegExp(
+        String.raw`(?:^|\n)\s*${label}\s*[:=]\s*([\s\S]*?)(?=\n\s*(SENTENCE|CHOICE)\s*[:=]|\s*$)`,
+        "i"
+      );
+      const m = t.match(re);
+      if (!m) return null;
+      return m[1].trim().replace(/\s+/g, " ");
+    }
+
+    return {
+      sentence: capture("SENTENCE"),
+      choice: capture("CHOICE")
+    };
+  }
+
+  function parseConjugationBlock(text) {
+    const t = normalizeText(text);
+    function capture(label) {
+      const re = new RegExp(
+        String.raw`(?:^|\n)\s*${label}\s*[:=]\s*([\s\S]*?)(?=\n\s*(SENTENCE|CORRECT|OPTIONS|DETAILS|TENSE_USED)\s*[:=]|\s*$)`,
+        "i"
+      );
+      const m = t.match(re);
+      if (!m) return "";
+      return m[1].trim();
+    }
+    return {
+      sentence: capture("SENTENCE"),
+      correct: capture("CORRECT"),
+      optionsRaw: capture("OPTIONS"),
+      details: capture("DETAILS"),
+      tenseUsed: capture("TENSE_USED")
+    };
+  }
+
+  const CONJUGATION_TENSES = [
+    "present tense",
+    "perfect tense (present perfect)",
+    "preterite tense",
+    "past tense (imperfect)",
+    "perfect tense (pluperfect)",
+    "future tense",
+    "conditional tense",
+    "progressive tense",
+    "affirmative commands",
+    "negative commands",
+    "subjunctive present",
+    "subjunctive past"
+  ];
+
+  function tenseHintForDisplay(tenseLabel) {
+    if (!showTenseHintToggle.checked) return "";
+    const lc = (tenseLabel || "").toLowerCase();
+    // Keep subjunctive prompts ambiguous so learner identifies mood from context.
+    if (lc.includes("subjunctive")) {
+      return "Tense hint: Identify the correct mood and tense from the sentence context.";
+    }
+    return `Tense hint: ${tenseLabel}`;
+  }
+
+  function ensureBracketCue(sentence, englishCue) {
+    const cue = `[${(englishCue || "").trim()}]`;
+    if (!englishCue) return sentence;
+
+    if (sentence.includes(cue)) return sentence;
+
+    if (/\[[^\]]+\]/.test(sentence)) {
+      return sentence.replace(/\[[^\]]+\]/, cue);
+    }
+
+    if (sentence.includes("______")) {
+      return sentence.replace("______", `${cue} ______`);
+    }
+
+    return `${sentence.trim()} ${cue} ______`;
+  }
+
+  function removeBracketCues(sentence) {
+    return (sentence || "")
+      .replace(/\s*\[[^\]]+\]\s*/g, " ")
+      .replace(/\s+/g, " ")
+      .replace(/\s+([.,;:!?])/g, "$1")
+      .trim();
+  }
+
+  function cleanConjugationOption(value) {
+    return (value || "")
+      .trim()
+      .replace(/^[-*\d.)\s]+/, "")
+      .replace(/^\s*(opcion|option|respuesta|answer|correct|incorrect)\s*[:=-]\s*/i, "")
+      .replace(/^['"`]+|['"`]+$/g, "")
+      .trim();
+  }
+
+  function isInfinitiveMatch(form, infinitive) {
+    return cleanConjugationOption(form).toLowerCase() === (infinitive || "").toLowerCase();
+  }
+
+  function fallbackConjugationForms(infinitive) {
+    const stem = (infinitive || "").replace(/(ar|er|ir)$/i, "");
+    const ending = (infinitive || "").match(/(ar|er|ir)$/i)?.[1]?.toLowerCase() || "ar";
+
+    const presentByEnding = {
+      ar: [`${stem}o`, `${stem}as`, `${stem}a`, `${stem}amos`, `${stem}an`],
+      er: [`${stem}o`, `${stem}es`, `${stem}e`, `${stem}emos`, `${stem}en`],
+      ir: [`${stem}o`, `${stem}es`, `${stem}e`, `${stem}imos`, `${stem}en`]
+    };
+
+    const preteriteByEnding = {
+      ar: [`${stem}e`, `${stem}aste`, `${stem}o`, `${stem}amos`, `${stem}aron`],
+      er: [`${stem}i`, `${stem}iste`, `${stem}io`, `${stem}imos`, `${stem}ieron`],
+      ir: [`${stem}i`, `${stem}iste`, `${stem}io`, `${stem}imos`, `${stem}ieron`]
+    };
+
+    return [
+      ...presentByEnding[ending],
+      ...preteriteByEnding[ending],
+      `${stem}aria`,
+      `${stem}are`,
+      `${stem}ando`,
+      `${stem}iendo`
+    ]
+      .map(cleanConjugationOption)
+      .filter(Boolean)
+      .filter(x => !isInfinitiveMatch(x, infinitive));
+  }
+
+  function buildExtraConjugationDistractors({ infinitive, correct, existing, needed }) {
+    const pool = fallbackConjugationForms(infinitive)
+      .map(cleanConjugationOption)
+      .filter(Boolean)
+      .filter(x => x.toLowerCase() !== (correct || "").toLowerCase())
+      .filter(x => !existing.some(e => e.toLowerCase() === x.toLowerCase()));
+
+    const picked = [];
+    for (const cand of pool) {
+      if (picked.length >= needed) break;
+      picked.push(cand);
+    }
+    return picked;
+  }
+
+  // Conjugation mode is fully local (non-AI).
+
+  function buildConjugationSentenceFromFormat(formatLine, infinitive) {
+    let sentence = (formatLine || "").trim();
+    if (!sentence) return `(${infinitive}) ______.`;
+
+    // Remove any leading numbering so user templates can be pasted as-is.
+    sentence = sentence.replace(/^\d+\.\s*/, "").trim();
+
+    // Normalize blank markers.
+    sentence = sentence.replace(/_{2,}/g, "______");
+
+    // Replace any parenthetical verb placeholder with the selected infinitive.
+    if (/\([^)]*\)/.test(sentence)) {
+      sentence = sentence.replace(/\([^)]*\)/, `(${infinitive})`);
+    } else {
+      sentence = `${sentence} (${infinitive})`;
+    }
+
+    // Ensure exactly one answer blank.
+    if (!sentence.includes("______")) {
+      sentence = sentence.replace(/\s+([.,;:!?])$/, " ______$1");
+      if (!sentence.includes("______")) sentence = `${sentence} ______`;
+    }
+
+    return sentence.replace(/\s+/g, " ").trim();
+  }
+
+  function getConjugationFormatInspiration(formatLine) {
+    const cleaned = (formatLine || "").trim().replace(/^\d+\.\s*/, "");
+    if (!cleaned) return "";
+    return cleaned;
+  }
+
+  function normalizeCompareText(text) {
+    return (text || "")
+      .toLowerCase()
+      .replace(/\([^)]*\)/g, " ")
+      .replace(/_{2,}/g, " ")
+      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function similarityJaccard(a, b) {
+    const ta = new Set(normalizeCompareText(a).split(" ").filter(Boolean));
+    const tb = new Set(normalizeCompareText(b).split(" ").filter(Boolean));
+    if (!ta.size || !tb.size) return 0;
+    let inter = 0;
+    for (const t of ta) if (tb.has(t)) inter++;
+    const uni = new Set([...ta, ...tb]).size;
+    return uni ? inter / uni : 0;
+  }
+
+  function buildUniqueConjugationFallbackSentence({ infinitive, subject, requiredTense }) {
+    const s = (subject || "Ellos").trim();
+    const t = (requiredTense || "").toLowerCase();
+
+    if (t.includes("present perfect")) return `${s} (${infinitive}) ______ esta semana.`;
+    if (t.includes("preterite")) return `Ayer, ${s} (${infinitive}) ______ sin problema.`;
+    if (t.includes("imperfect") || t.includes("past tense")) return `Antes, ${s} (${infinitive}) ______ con frecuencia.`;
+    if (t.includes("future")) return `Manana, ${s} (${infinitive}) ______ en casa.`;
+    if (t.includes("conditional")) return `En esa situacion, ${s} (${infinitive}) ______ mas temprano.`;
+    if (t.includes("progressive")) return `Ahora, ${s} (${infinitive}) ______ en clase.`;
+    if (t.includes("affirmative command")) return `Por favor, ${s} (${infinitive}) ______ ahora.`;
+    if (t.includes("negative command")) return `Por favor, ${s} no (${infinitive}) ______ ahora.`;
+    if (t.includes("subjunctive")) return `Espero que ${s} (${infinitive}) ______ hoy.`;
+    return `${s} (${infinitive}) ______ en este contexto.`;
+  }
+
+  function stripReflexive(infinitive) {
+    const v = (infinitive || "").trim().toLowerCase();
+    return v.endsWith("se") ? v.slice(0, -2) : v;
+  }
+
+  function isReflexiveInfinitive(infinitive) {
+    return (infinitive || "").trim().toLowerCase().endsWith("se");
+  }
+
+  function reflexivePronounForSubject(subjectObj) {
+    if (!subjectObj) return "se";
+    if (subjectObj.key === "yo") return "me";
+    if (subjectObj.key === "tu") return "te";
+    if (subjectObj.key === "nosotros") return "nos";
+    return "se";
+  }
+
+  function attachReflexiveToAffirmativeCommand(commandForm, subjectObj) {
+    const pron = reflexivePronounForSubject(subjectObj);
+    return `${commandForm}${pron}`;
+  }
+
+  function getVerbParts(infinitive) {
+    const base = stripReflexive(infinitive);
+    const m = base.match(/(ar|er|ir)$/);
+    const ending = m ? m[1] : "ar";
+    const stem = m ? base.slice(0, -2) : base;
+    return { base, stem, ending };
+  }
+
+  function getSubjectByText(text) {
+    const raw = (text || "").trim().toLowerCase();
+    if (!raw) return null;
+
+    const direct = SUBJECT_POOL.find(s => s.text.toLowerCase() === raw || s.key === raw);
+    if (direct) return direct;
+
+    if (raw.includes("ustedes")) return SUBJECT_POOL.find(s => s.key === "ustedes") || null;
+    if (raw.includes("nosotros")) return SUBJECT_POOL.find(s => s.key === "nosotros") || null;
+    if (raw.includes("yo")) return SUBJECT_POOL.find(s => s.key === "yo") || null;
+    if (raw.includes("tu ") || raw === "tu") return SUBJECT_POOL.find(s => s.key === "tu") || null;
+    if (raw.includes("usted")) return SUBJECT_POOL.find(s => s.key === "usted") || null;
+    if (raw.includes("ellos")) return SUBJECT_POOL.find(s => s.key === "ellos") || null;
+    if (raw.includes("ellas")) return SUBJECT_POOL.find(s => s.key === "ellas") || null;
+    if (raw.includes("ella")) return SUBJECT_POOL.find(s => s.key === "ella") || null;
+    if (raw.includes("el ") || raw === "el") return SUBJECT_POOL.find(s => s.key === "el") || null;
+
+    return null;
+  }
+
+  function parseNamedLineSimple(text, label) {
+    const t = normalizeText(text || "");
+    const m = t.match(new RegExp(String.raw`(?:^|\n)\s*${label}\s*[:=]\s*([^\n]+)`, "i"));
+    return m ? m[1].trim() : "";
+  }
+
+  async function generateConjugationScenarioWithAI({ verbEntries, targetTense, formatInspiration, forceReflexive = false }) {
+    const sample = shuffle(verbEntries).slice(0, 70);
+    const verbList = sample.map(v => v.verb.replace(/\s*\(.*?\)\s*/g, "").trim()).filter(Boolean);
+    const uniqueVerbList = Array.from(new Set(verbList));
+
+    const system = "You are a Spanish teacher. Return only the requested lines.";
+    const prompt =
+`Create one Spanish conjugation question plan.
+
+Target tense/mood: ${targetTense}
+Format inspiration (style only, do not copy wording): ${formatInspiration || "(none provided)"}
+Reflexive mode for this item: ${forceReflexive ? "ON" : "OFF"}
+
+Choose one verb from this allowed list only:
+${uniqueVerbList.map(v => `- ${v}`).join("\n")}
+
+Rules:
+- Pick a subject that clearly indicates person/number.
+- Choose a verb that fits the sentence meaning naturally.
+- Re-check before final output that subject, verb meaning, and tense/mood are coherent.
+- Sentence must be NEW, not copied from the format inspiration.
+- Sentence must include exactly one blank token: ______
+- Sentence must include the chosen infinitive in parentheses exactly once.
+- If target tense/mood is not a command, do NOT use imperative framing such as "Por favor" + bare command style.
+- If reflexive mode is ON, prefer verbs and contexts that naturally work reflexively.
+
+Return exactly these lines:
+VERB=<one infinitive from the allowed list>
+SUBJECT=<subject text>
+SENTENCE=<Spanish sentence with (verb) and ______>`;
+
+    const raw = await callLLM({ system, prompt, max_tokens: 220, temperature: 0.35, timeoutMs: 25000 });
+    const verb = cleanConjugationOption(parseNamedLineSimple(raw, "VERB"));
+    const subject = parseNamedLineSimple(raw, "SUBJECT");
+    const sentence = parseNamedLineSimple(raw, "SENTENCE");
+
+    if (!verb || !sentence) return null;
+    return { verb, subject, sentence };
+  }
+
+  function isCommandTense(tenseLabel) {
+    const t = (tenseLabel || "").toLowerCase();
+    return t.includes("affirmative command") || t.includes("negative command");
+  }
+
+  function sentenceLooksCommand(sentence) {
+    const s = (sentence || "").toLowerCase();
+    return s.includes("por favor") || /!/.test(s);
+  }
+
+  const SUBJECT_POOL = [
+    { key: "yo", text: "Yo", person: "1st", number: "singular", idx: 0 },
+    { key: "tu", text: "Tu", person: "2nd", number: "singular", idx: 1 },
+    { key: "el", text: "El", person: "3rd", number: "singular", idx: 2 },
+    { key: "ella", text: "Ella", person: "3rd", number: "singular", idx: 2 },
+    { key: "usted", text: "Usted", person: "3rd", number: "singular", idx: 2 },
+    { key: "nosotros", text: "Nosotros", person: "1st", number: "plural", idx: 3 },
+    { key: "ellos", text: "Ellos", person: "3rd", number: "plural", idx: 4 },
+    { key: "ellas", text: "Ellas", person: "3rd", number: "plural", idx: 4 },
+    { key: "ustedes", text: "Ustedes", person: "3rd", number: "plural", idx: 4 },
+    { key: "juan", text: "Juan", person: "3rd", number: "singular", idx: 2 },
+    { key: "maria", text: "Maria", person: "3rd", number: "singular", idx: 2 },
+    { key: "los_estudiantes", text: "Los estudiantes", person: "3rd", number: "plural", idx: 4 }
+  ];
+
+  const IRREG_PRESENT = {
+    ser: ["soy", "eres", "es", "somos", "son"],
+    ir: ["voy", "vas", "va", "vamos", "van"],
+    estar: ["estoy", "estas", "está", "estamos", "están"],
+    tener: ["tengo", "tienes", "tiene", "tenemos", "tienen"],
+    venir: ["vengo", "vienes", "viene", "venimos", "vienen"],
+    hacer: ["hago", "haces", "hace", "hacemos", "hacen"],
+    decir: ["digo", "dices", "dice", "decimos", "dicen"],
+    oir: ["oigo", "oyes", "oye", "oimos", "oyen"],
+    poder: ["puedo", "puedes", "puede", "podemos", "pueden"],
+    poner: ["pongo", "pones", "pone", "ponemos", "ponen"],
+    querer: ["quiero", "quieres", "quiere", "queremos", "quieren"],
+    saber: ["sé", "sabes", "sabe", "sabemos", "saben"],
+    salir: ["salgo", "sales", "sale", "salimos", "salen"],
+    ver: ["veo", "ves", "ve", "vemos", "ven"],
+    dar: ["doy", "das", "da", "damos", "dan"],
+    haber: ["he", "has", "ha", "hemos", "han"]
+  };
+
+  const IRREG_IMPERFECT = {
+    ser: ["era", "eras", "era", "eramos", "eran"],
+    ir: ["iba", "ibas", "iba", "ibamos", "iban"],
+    ver: ["veía", "veías", "veía", "veíamos", "veían"]
+  };
+
+  const IRREG_PRETERITE_FULL = {
+    ser: ["fui", "fuiste", "fue", "fuimos", "fueron"],
+    ir: ["fui", "fuiste", "fue", "fuimos", "fueron"],
+    dar: ["di", "diste", "dio", "dimos", "dieron"],
+    ver: ["vi", "viste", "vio", "vimos", "vieron"]
+  };
+
+  const IRREG_PRETERITE_STEMS = {
+    andar: "anduv", estar: "estuv", tener: "tuv", poder: "pud", poner: "pus", saber: "sup",
+    querer: "quis", venir: "vin", hacer: "hic", decir: "dij", traer: "traj", conducir: "conduj",
+    traducir: "traduj", producir: "produj", caber: "cup", haber: "hub"
+  };
+
+  const STEM_E_IE = new Set(["pensar", "cerrar", "empezar", "comenzar", "entender", "querer", "sentar", "despertar", "negar"]);
+  const STEM_O_UE = new Set(["poder", "volver", "dormir", "encontrar", "contar", "recordar", "morir", "llover"]);
+  const STEM_E_I = new Set(["pedir", "servir", "repetir", "seguir", "corregir", "elegir", "medir"]);
+  const STEM_U_UE = new Set(["jugar"]);
+
+  const HABER_PRESENT = ["he", "has", "ha", "hemos", "han"];
+  const HABER_IMPERFECT = ["había", "habías", "había", "habíamos", "habían"];
+  const ESTAR_PRESENT = ["estoy", "estas", "esta", "estamos", "estan"];
+  const ESTAR_IMPERFECT = ["estaba", "estabas", "estaba", "estábamos", "estaban"];
+  const FUTURE_STEMS = {
+    tener: "tendr", venir: "vendr", decir: "dir", hacer: "har", poder: "podr",
+    poner: "pondr", querer: "querr", saber: "sabr", salir: "saldr", valer: "valdr",
+    haber: "habr", caber: "cabr"
+  };
+  const IRREG_PARTICIPLES = {
+    abrir: "abierto", cubrir: "cubierto", decir: "dicho", escribir: "escrito", hacer: "hecho",
+    morir: "muerto", poner: "puesto", resolver: "resuelto", romper: "roto", ver: "visto", volver: "vuelto",
+    freir: "frito", imprimir: "impreso"
+  };
+
+  const IRREG_TU_AFFIRMATIVE = {
+    tener: "ten", venir: "ven", decir: "di", salir: "sal", hacer: "haz", ser: "sé", ir: "ve", poner: "pon"
+  };
+
+  function replaceLastVowelWithAccent(text) {
+    const map = { a: "á", e: "é", i: "í", o: "ó", u: "ú" };
+    const idx = text.search(/[aeiou](?!.*[aeiou])/i);
+    if (idx === -1) return text;
+    const ch = text[idx].toLowerCase();
+    const repl = map[ch] || ch;
+    return text.slice(0, idx) + repl + text.slice(idx + 1);
+  }
+
+  function applyStemChange(base, stem, mode, idx) {
+    const isNos = idx === 3;
+    if (mode === "present") {
+      if (STEM_E_IE.has(base) && !isNos) return stem.replace(/e(?!.*e)/, "ie");
+      if (STEM_O_UE.has(base) && !isNos) return stem.replace(/o(?!.*o)/, "ue");
+      if (STEM_E_I.has(base) && !isNos) return stem.replace(/e(?!.*e)/, "i");
+      if (STEM_U_UE.has(base) && !isNos) return stem.replace(/u(?!.*u)/, "ue");
+      return stem;
+    }
+    if (mode === "subjunctive") {
+      if (STEM_E_IE.has(base)) return isNos ? stem : stem.replace(/e(?!.*e)/, "ie");
+      if (STEM_O_UE.has(base)) return isNos ? stem : stem.replace(/o(?!.*o)/, "ue");
+      if (STEM_E_I.has(base)) return isNos ? stem.replace(/e(?!.*e)/, "i") : stem.replace(/e(?!.*e)/, "i");
+      if (STEM_U_UE.has(base)) return isNos ? stem : stem.replace(/u(?!.*u)/, "ue");
+      return stem;
+    }
+    if (mode === "preterite_ir_third") {
+      if (idx !== 2 && idx !== 4) return stem;
+      if (STEM_E_IE.has(base) || STEM_E_I.has(base)) return stem.replace(/e(?!.*e)/, "i");
+      if (STEM_O_UE.has(base)) return stem.replace(/o(?!.*o)/, "u");
+      return stem;
+    }
+    return stem;
+  }
+
+  function regularPresent(base, stem, ending, idx) {
+    let root = applyStemChange(base, stem, "present", idx);
+    const end = ending === "ar"
+      ? ["o", "as", "a", "amos", "an"]
+      : ending === "er"
+        ? ["o", "es", "e", "emos", "en"]
+        : ["o", "es", "e", "imos", "en"];
+
+    if (base.endsWith("uir") && !base.endsWith("guir") && idx !== 3) {
+      root = root + "y";
+    }
+
+    if (idx === 0) {
+      if (base.endsWith("ger") || base.endsWith("gir")) return root + "jo";
+      if (base.endsWith("guir")) return root.replace(/gu$/i, "g") + "o";
+      if (/(acer|ecer|ocer|ucir|cir)$/i.test(base)) return root + "zco";
+    }
+
+    return root + end[idx];
+  }
+
+  function regularPreterite(base, stem, ending, idx) {
+    if (IRREG_PRETERITE_FULL[base]) return IRREG_PRETERITE_FULL[base][idx];
+
+    if (IRREG_PRETERITE_STEMS[base]) {
+      const st = IRREG_PRETERITE_STEMS[base];
+      const end = ["e", "iste", base === "hacer" ? "izo" : "o", "imos", /(decir|traer|ducir)$/i.test(base) ? "eron" : "ieron"];
+      return st + end[idx];
+    }
+
+    let root = stem;
+    if (ending === "ir") root = applyStemChange(base, stem, "preterite_ir_third", idx);
+
+    if (idx === 0) {
+      if (base.endsWith("car")) return `${stem.slice(0, -1)}que`;
+      if (base.endsWith("gar")) return `${stem}ue`;
+      if (base.endsWith("zar")) return `${stem.slice(0, -1)}ce`;
+    }
+
+    const needsY = (ending !== "ar") && /[aeiou]$/i.test(stem);
+    if (needsY && (idx === 2 || idx === 4)) {
+      return idx === 2 ? `${stem}yó` : `${stem}yeron`;
+    }
+
+    const end = ending === "ar"
+      ? ["é", "aste", "ó", "amos", "aron"]
+      : ["í", "iste", "ió", "imos", "ieron"];
+    return root + end[idx];
+  }
+
+  function regularImperfect(base, stem, ending, idx) {
+    if (IRREG_IMPERFECT[base]) return IRREG_IMPERFECT[base][idx];
+    const end = ending === "ar"
+      ? ["aba", "abas", "aba", "ábamos", "aban"]
+      : ["ía", "ías", "ía", "íamos", "ían"];
+    return stem + end[idx];
+  }
+
+  function pastParticiple(base, stem, ending) {
+    if (IRREG_PARTICIPLES[base]) return IRREG_PARTICIPLES[base];
+    return ending === "ar" ? `${stem}ado` : `${stem}ido`;
+  }
+
+  function gerund(base, stem, ending) {
+    if ((ending === "er" || ending === "ir") && /[aeiou]$/i.test(stem)) return `${stem}yendo`;
+    if (ending === "ir" && (STEM_E_I.has(base) || STEM_E_IE.has(base))) return `${stem.replace(/e(?!.*e)/, "i")}iendo`;
+    return ending === "ar" ? `${stem}ando` : `${stem}iendo`;
+  }
+
+  function presentSubjunctive(base, stem, ending, idx) {
+    const irregular = {
+      ser: ["sea", "seas", "sea", "seamos", "sean"],
+      ir: ["vaya", "vayas", "vaya", "vayamos", "vayan"],
+      estar: ["esté", "estés", "esté", "estemos", "estén"],
+      dar: ["dé", "des", "dé", "demos", "den"],
+      saber: ["sepa", "sepas", "sepa", "sepamos", "sepan"],
+      haber: ["haya", "hayas", "haya", "hayamos", "hayan"]
+    };
+    if (irregular[base]) return irregular[base][idx];
+
+    const yo = regularPresent(base, stem, ending, 0);
+    let root = yo.endsWith("o") ? yo.slice(0, -1) : stem;
+    root = applyStemChange(base, root, "subjunctive", idx);
+
+    const end = ending === "ar"
+      ? ["e", "es", "e", "emos", "en"]
+      : ["a", "as", "a", "amos", "an"];
+    return root + end[idx];
+  }
+
+  function preteriteEllos(base, stem, ending) {
+    return regularPreterite(base, stem, ending, 4);
+  }
+
+  function pastSubjunctive(base, stem, ending, idx) {
+    const ellos = preteriteEllos(base, stem, ending);
+    const root = ellos.endsWith("ron") ? ellos.slice(0, -3) : stem;
+    const endings = ["ra", "ras", "ra", "ramos", "ran"];
+    if (idx === 3) return `${replaceLastVowelWithAccent(root)}${endings[idx]}`;
+    return root + endings[idx];
+  }
+
+  function conjugateSpanishVerbDetailed(infinitive, tenseLabel, subjectObj) {
+    const { base, stem, ending } = getVerbParts(infinitive);
+    const idx = subjectObj.idx;
+    const t = (tenseLabel || "").toLowerCase();
+    const reflexive = isReflexiveInfinitive(infinitive);
+    const reflexivePron = reflexivePronounForSubject(subjectObj);
+    const steps = [];
+
+    function withReflexive(core) {
+      if (!reflexive) return core;
+      if (t.includes("affirmative command")) return attachReflexiveToAffirmativeCommand(core, subjectObj);
+      if (t.includes("negative command")) return `no ${reflexivePron} ${core}`;
+      return `${reflexivePron} ${core}`;
+    }
+
+    function finalize(core, note) {
+      if (note) steps.push(note);
+      if (reflexive) {
+        if (t.includes("affirmative command")) {
+          steps.push(`Attach reflexive pronoun (${reflexivePron}) to command form: ${core} + ${reflexivePron}.`);
+        } else if (t.includes("negative command")) {
+          steps.push(`Place reflexive pronoun before verb in negative command: no ${reflexivePron} ${core}.`);
+        } else {
+          steps.push(`Place reflexive pronoun before conjugated verb: ${reflexivePron} ${core}.`);
+        }
+      }
+      return { core, final: withReflexive(core), steps };
+    }
+
+    if (t.includes("present perfect")) {
+      const aux = HABER_PRESENT[idx];
+      const pp = pastParticiple(base, stem, ending);
+      return finalize(`${aux} ${pp}`, `Present perfect: use haber (${aux}) + participle (${pp}).`);
+    }
+    if (t.includes("perfect") && t.includes("pluperfect")) {
+      const aux = HABER_IMPERFECT[idx];
+      const pp = pastParticiple(base, stem, ending);
+      return finalize(`${aux} ${pp}`, `Pluperfect: use imperfect haber (${aux}) + participle (${pp}).`);
+    }
+    if (t.includes("progressive")) {
+      const aux = t.includes("past") ? ESTAR_IMPERFECT[idx] : ESTAR_PRESENT[idx];
+      const g = gerund(base, stem, ending);
+      return finalize(`${aux} ${g}`, `Progressive: use estar (${aux}) + gerund (${g}).`);
+    }
+    if (t.includes("future")) {
+      const futStem = FUTURE_STEMS[base] || base;
+      const end = ["é", "ás", "á", "emos", "án"];
+      return finalize(futStem + end[idx], `Future: stem (${futStem}) + ending (${end[idx]}).`);
+    }
+    if (t.includes("conditional")) {
+      const futStem = FUTURE_STEMS[base] || base;
+      const end = ["ía", "ías", "ía", "íamos", "ían"];
+      return finalize(futStem + end[idx], `Conditional: stem (${futStem}) + ending (${end[idx]}).`);
+    }
+    if (t.includes("subjunctive present")) {
+      const c = presentSubjunctive(base, stem, ending, idx);
+      return finalize(c, `Present subjunctive form selected: ${c}.`);
+    }
+    if (t.includes("subjunctive past")) {
+      const c = pastSubjunctive(base, stem, ending, idx);
+      return finalize(c, `Past subjunctive form selected: ${c}.`);
+    }
+    if (t.includes("negative command")) {
+      const c = presentSubjunctive(base, stem, ending, idx);
+      return finalize(c, `Negative command uses present subjunctive base: ${c}.`);
+    }
+    if (t.includes("affirmative command")) {
+      if (subjectObj.key === "tu") {
+        const c = IRREG_TU_AFFIRMATIVE[base] || regularPresent(base, stem, ending, 2);
+        return finalize(c, `Affirmative tu command form selected: ${c}.`);
+      }
+      if (subjectObj.key === "nosotros") {
+        const c = presentSubjunctive(base, stem, ending, 3);
+        return finalize(c, `Affirmative nosotros command from subjunctive: ${c}.`);
+      }
+      const c = presentSubjunctive(base, stem, ending, idx);
+      return finalize(c, `Affirmative command from subjunctive pattern: ${c}.`);
+    }
+    if (t.includes("preterite")) {
+      const c = regularPreterite(base, stem, ending, idx);
+      return finalize(c, `Preterite form selected: ${c}.`);
+    }
+    if (t.includes("imperfect") || t.includes("past tense")) {
+      const c = regularImperfect(base, stem, ending, idx);
+      return finalize(c, `Imperfect form selected: ${c}.`);
+    }
+    const c = IRREG_PRESENT[base] ? IRREG_PRESENT[base][idx] : regularPresent(base, stem, ending, idx);
+    return finalize(c, `Present form selected: ${c}.`);
+  }
+
+  function conjugateSpanishVerb(infinitive, tenseLabel, subjectObj) {
+    return conjugateSpanishVerbDetailed(infinitive, tenseLabel, subjectObj).final;
+  }
+
+  function pickSubjectForTense(tenseLabel) {
+    const t = (tenseLabel || "").toLowerCase();
+    let pool = SUBJECT_POOL;
+    if (t.includes("command")) pool = SUBJECT_POOL.filter(s => ["tu", "usted", "ustedes", "nosotros"].includes(s.key));
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function inferSubjectFromSentence(sentence) {
+    const s = (sentence || "").toLowerCase();
+    const byToken = [
+      [" yo ", "yo"],
+      [" tu ", "tu"],
+      [" usted ", "usted"],
+      [" ustedes ", "ustedes"],
+      [" nosotros ", "nosotros"],
+      [" ellos ", "ellos"],
+      [" ellas ", "ellas"],
+      [" el ", "el"],
+      [" ella ", "ella"]
+    ];
+    const padded = ` ${s.replace(/[.,;:!?]/g, " ")} `;
+    for (const [token, key] of byToken) {
+      if (padded.includes(token)) {
+        return SUBJECT_POOL.find(x => x.key === key) || null;
+      }
+    }
+
+    if (/\b(los|las)\b/.test(s)) return SUBJECT_POOL.find(x => x.key === "ellos") || null;
+    if (/\b(el|la|juan|maria)\b/.test(s)) return SUBJECT_POOL.find(x => x.key === "el") || null;
+    return null;
+  }
+
+  function buildSentenceInspiredByFormat({ formatInspiration, infinitive, subjectText, tenseLabel }) {
+    const t = (tenseLabel || "").toLowerCase();
+    const f = (formatInspiration || "").toLowerCase();
+    const style = f.includes("por favor") || f.includes("!")
+      ? "command"
+      : f.includes("que")
+        ? "subordinate"
+        : f.includes("ayer") || f.includes("hoy") || f.includes("manana") || f.includes("cuando")
+          ? "temporal"
+          : f.includes("si ")
+            ? "conditional"
+            : "generic";
+
+    if (t.includes("command")) {
+      if (t.includes("negative")) return `Por favor, ${subjectText} no (${infinitive}) ______ tan tarde.`;
+      return `Por favor, ${subjectText} (${infinitive}) ______ ahora mismo.`;
+    }
+    if (t.includes("subjunctive")) {
+      return `Espero que ${subjectText} (${infinitive}) ______ a tiempo.`;
+    }
+    if (style === "subordinate") {
+      return `Creo que ${subjectText} (${infinitive}) ______ sin problema.`;
+    }
+    if (t.includes("present perfect")) return `${subjectText} (${infinitive}) ______ esta semana.`;
+    if (t.includes("pluperfect")) return `Antes de eso, ${subjectText} (${infinitive}) ______ varias veces.`;
+    if (t.includes("preterite")) return `Ayer, ${subjectText} (${infinitive}) ______ en el centro.`;
+    if (t.includes("imperfect") || t.includes("past tense")) return `Cuando era pequeno, ${subjectText} (${infinitive}) ______ con frecuencia.`;
+    if (t.includes("future")) return `Manana, ${subjectText} (${infinitive}) ______ en casa.`;
+    if (t.includes("conditional")) return `En esa situacion, ${subjectText} (${infinitive}) ______ mas temprano.`;
+    if (t.includes("progressive")) return `Ahora, ${subjectText} (${infinitive}) ______ en clase.`;
+    return `Generalmente, ${subjectText} (${infinitive}) ______ sin problema.`;
+  }
+
+  function buildLocalConjugationExplanation({ infinitive, tenseLabel, subjectObj, correct }) {
+    const { base, stem, ending } = getVerbParts(infinitive);
+    const t = (tenseLabel || "").toLowerCase();
+    const parts = [];
+
+    parts.push(`Local grammar explanation: Subject is ${subjectObj.text} (${subjectObj.person} person, ${subjectObj.number}).`);
+    parts.push(`Target tense/mood: ${tenseLabel}.`);
+    parts.push(`Infinitive: ${infinitive}. Correct form used: ${correct}.`);
+
+    if (t.includes("present perfect")) {
+      parts.push("Rule applied: present perfect = present of haber + past participle.");
+      parts.push(`Auxiliary selected by subject index ${subjectObj.idx}: ${HABER_PRESENT[subjectObj.idx]}.`);
+    } else if (t.includes("pluperfect")) {
+      parts.push("Rule applied: pluperfect = imperfect of haber + past participle.");
+      parts.push(`Auxiliary selected by subject index ${subjectObj.idx}: ${HABER_IMPERFECT[subjectObj.idx]}.`);
+    } else if (t.includes("progressive")) {
+      parts.push("Rule applied: progressive = form of estar + gerund (-ando/-iendo/-yendo)." );
+      parts.push(`Auxiliary selected by subject index ${subjectObj.idx}: ${t.includes("past") ? ESTAR_IMPERFECT[subjectObj.idx] : ESTAR_PRESENT[subjectObj.idx]}.`);
+    } else if (t.includes("future")) {
+      parts.push("Rule applied: future endings added to infinitive or irregular future stem.");
+    } else if (t.includes("conditional")) {
+      parts.push("Rule applied: conditional endings added to infinitive or irregular future stem.");
+    } else if (t.includes("subjunctive present")) {
+      parts.push("Rule applied: present subjunctive built from yo-form stem + opposite vowel endings.");
+    } else if (t.includes("subjunctive past")) {
+      parts.push("Rule applied: past subjunctive built from preterite ellos root + -ra set.");
+    } else if (t.includes("negative command")) {
+      parts.push("Rule applied: negative commands use present subjunctive forms.");
+    } else if (t.includes("affirmative command")) {
+      parts.push("Rule applied: affirmative command form selected by subject (tu special forms, others from subjunctive patterns)." );
+    } else if (t.includes("preterite")) {
+      parts.push("Rule applied: preterite endings selected by verb class and subject index.");
+    } else if (t.includes("imperfect") || t.includes("past tense")) {
+      parts.push("Rule applied: imperfect endings selected by verb class and subject index.");
+    } else {
+      parts.push("Rule applied: present tense endings selected by verb class and subject index.");
+    }
+
+    if (IRREG_PRESENT[base] && (t.includes("present") || t.includes("command") || t.includes("subjunctive"))) {
+      parts.push("Irregularity note: verb has irregular present-family forms.");
+    }
+    if (IRREG_PRETERITE_FULL[base] || IRREG_PRETERITE_STEMS[base]) {
+      if (t.includes("preterite") || t.includes("subjunctive past")) {
+        parts.push("Irregularity note: verb uses irregular preterite pattern/stem.");
+      }
+    }
+    if (IRREG_PARTICIPLES[base] && (t.includes("perfect") || t.includes("participle"))) {
+      parts.push("Irregularity note: verb has irregular past participle.");
+    }
+    if (STEM_E_IE.has(base) || STEM_O_UE.has(base) || STEM_E_I.has(base) || STEM_U_UE.has(base)) {
+      if (t.includes("present") || t.includes("subjunctive") || t.includes("preterite") || t.includes("command")) {
+        parts.push("Stem-change note: this verb can trigger stem-vowel alternation in selected persons/tenses.");
+      }
+    }
+    if (/(car|gar|zar)$/i.test(base) && t.includes("preterite") && subjectObj.idx === 0) {
+      parts.push("Spelling-change note: -car/-gar/-zar preterite yo spelling protection may apply.");
+    }
+    if (/(uir)$/i.test(base) && !/(guir)$/i.test(base) && (t.includes("present") || t.includes("gerund") || t.includes("preterite"))) {
+      parts.push("Spelling-change note: vowel + i sequence can trigger y-insertion patterns.");
+    }
+
+    parts.push("This explanation is locally generated from deterministic conjugation rules (non-AI)." );
+    return parts.join(" ");
+  }
+
+  function getIrregularityAlert({ infinitive, tenseLabel, subjectObj }) {
+    const { base } = getVerbParts(infinitive);
+    const t = (tenseLabel || "").toLowerCase();
+    const notes = [];
+
+    if (IRREG_PRESENT[base] && (t.includes("present") || t.includes("subjunctive") || t.includes("command"))) {
+      notes.push("irregular present-family forms");
+    }
+    if (IRREG_IMPERFECT[base] && (t.includes("imperfect") || t.includes("past tense"))) {
+      notes.push("irregular imperfect forms");
+    }
+    if ((IRREG_PRETERITE_FULL[base] || IRREG_PRETERITE_STEMS[base]) && (t.includes("preterite") || t.includes("subjunctive past"))) {
+      notes.push("irregular preterite stem/form");
+    }
+    if (FUTURE_STEMS[base] && (t.includes("future") || t.includes("conditional"))) {
+      notes.push("irregular future/conditional stem");
+    }
+    if (IRREG_PARTICIPLES[base] && t.includes("perfect")) {
+      notes.push("irregular past participle");
+    }
+    if (STEM_E_IE.has(base) || STEM_O_UE.has(base) || STEM_E_I.has(base) || STEM_U_UE.has(base)) {
+      if (t.includes("present") || t.includes("subjunctive") || t.includes("command") || t.includes("preterite")) {
+        notes.push("stem-changing pattern");
+      }
+    }
+    if (/(car|gar|zar)$/i.test(base) && t.includes("preterite") && subjectObj.idx === 0) {
+      notes.push("-car/-gar/-zar spelling change in preterite yo form");
+    }
+    if (/(uir)$/i.test(base) && !/(guir)$/i.test(base) && (t.includes("present") || t.includes("preterite") || t.includes("progressive"))) {
+      notes.push("y-insertion spelling change pattern");
+    }
+
+    if (!notes.length) {
+      return "Irregularity alert: This item uses regular conjugation rules for the target tense/mood.";
+    }
+    return `Irregularity alert: This verb is irregular here due to ${Array.from(new Set(notes)).join(", ")}.`;
+  }
+
+  function buildConjugationDistractors({ infinitive, tenseLabel, subjectObj, correct }) {
+    const altTenses = [
+      "present tense",
+      "preterite tense",
+      "past tense (imperfect)",
+      "future tense",
+      "conditional tense"
+    ];
+
+    const d = [];
+    const wrongTense = altTenses.find(x => x.toLowerCase() !== (tenseLabel || "").toLowerCase()) || "present tense";
+    d.push(conjugateSpanishVerb(infinitive, wrongTense, subjectObj));
+
+    const otherSubject = SUBJECT_POOL.find(s => s.idx !== subjectObj.idx) || SUBJECT_POOL[0];
+    d.push(conjugateSpanishVerb(infinitive, tenseLabel, otherSubject));
+
+    const typo = cleanConjugationOption(correct).replace(/[aeiou]$/i, "a") || `${getVerbParts(infinitive).stem}a`;
+    d.push(typo);
+
+    const pool = fallbackConjugationForms(infinitive);
+    for (const cand of pool) {
+      if (d.length >= 4) break;
+      if (cand.toLowerCase() !== correct.toLowerCase() && !d.some(x => x.toLowerCase() === cand.toLowerCase())) d.push(cand);
+    }
+
+    return Array.from(new Set(d.map(cleanConjugationOption).filter(Boolean))).slice(0, 4);
+  }
+
+  async function chooseBestPreposition(mode, sentenceBlank, formatLine, englishCue, candidateSpanish, matchedPrepLines, showEnglishCue) {
+    const system =
+      "You are a Spanish teacher. Follow the output format exactly. Do not add extra labels.";
+
+    const prompt =
+`Create a Spanish fill-in-the-blank question and pick the best preposition.
+
+Use the provided format only as the question TYPE and structure guide. Be creative with the sentence content, but keep it natural and make the blank depend on the assigned preposition meaning.
+
+Selected mode:
+${mode.label}
+
+Mode instruction:
+${mode.promptFlavor}
+
+Mode answer dependency:
+${mode.answerDependency}
+
+Mode examples:
+${mode.examples.map(x => "- " + x).join("\n")}
+
+English cue from the format bracket:
+${englishCue}
+
+Relevant prep entries (with parenthetical meaning hints):
+${matchedPrepLines.map(x => "- " + x).join("\n")}
+
+Format reference:
+${formatLine}
+
+Sentence requirements:
+- Must be one Spanish sentence.
+- Must include exactly one blank as ______.
+- ${showEnglishCue ? "Must include the direct English cue in brackets, like [near]." : "Do NOT include any bracketed English cue in the sentence."}
+- The blank must be fillable by exactly one of the choices below.
+
+Choices (you MUST choose exactly one of these, copy-paste it):
+${candidateSpanish.map(x => "- " + x).join("\n")}
+
+Return EXACTLY these 2 lines (use =):
+SENTENCE=<Spanish sentence containing ______>
+CHOICE=<one choice exactly>
+
+No bullets. No quotes. No extra lines.`;
+
+    const raw = await callLLM({ system, prompt, max_tokens: 180, temperature: 0.4, timeoutMs: 30000 });
+    const parsed = parseSentenceAndChoice(raw);
+    const parsedChoice = parsed.choice || parseChoiceOnly(raw);
+
+    // Strictly resolve the choice to one of candidates
+    let chosen = null;
+    if (parsedChoice) {
+      chosen =
+        candidateSpanish.find(x => x === parsedChoice) ||
+        candidateSpanish.find(x => x.toLowerCase() === parsedChoice.toLowerCase());
+    }
+    if (!chosen) chosen = candidateSpanish[0];
+
+    const generatedBlank = parsed.sentence && parsed.sentence.includes("______")
+      ? parsed.sentence
+      : sentenceBlank;
+
+    const sentenceFilled = generatedBlank.replace("______", chosen);
+
+    return {
+      sentenceBlank: generatedBlank,
+      chosen,
+      sentenceFilled
+    };
+  }
+
+  async function buildConjugationQuestionData(mode, verbEntries) {
+    const data = getModeData(mode.id);
+    const formatsLines = data.parsed.formatsLines || [];
+    let customFormat = "";
+    if (formatsLines.length > 0) {
+      customFormat = formatsLines[Math.floor(Math.random() * formatsLines.length)];
+    }
+
+    const targetTense = CONJUGATION_TENSES[Math.floor(Math.random() * CONJUGATION_TENSES.length)];
+    const formatInspiration = getConjugationFormatInspiration(customFormat);
+    
+    const reflexiveChance = Math.max(0, Math.min(100, Number(reflexiveChanceInput?.value || 0)));
+    const forceReflexive = Math.random() * 100 < reflexiveChance;
+
+    // AI picks a suitable verb and drafts a sentence plan. Conjugation stays local.
+    let aiPlan = null;
+    try {
+      aiPlan = await generateConjugationScenarioWithAI({
+        verbEntries,
+        targetTense,
+        formatInspiration,
+        forceReflexive
+      });
+    } catch {}
+
+    const allowedInfinitives = new Set(verbEntries.map(v => v.verb.replace(/\s*\(.*?\)\s*/g, "").trim().toLowerCase()));
+    const fallbackEntry = verbEntries[Math.floor(Math.random() * verbEntries.length)];
+    const fallbackInfinitive = fallbackEntry.verb.replace(/\s*\(.*?\)\s*/g, "").trim();
+
+    const aiVerb = (aiPlan?.verb || "").toLowerCase();
+    let infinitive = allowedInfinitives.has(aiVerb) ? aiPlan.verb : fallbackInfinitive;
+    if (forceReflexive && !isReflexiveInfinitive(infinitive)) infinitive = `${stripReflexive(infinitive)}se`;
+    if (!forceReflexive && isReflexiveInfinitive(infinitive)) infinitive = stripReflexive(infinitive);
+
+    const sentenceFromFormat = buildConjugationSentenceFromFormat(customFormat || `(${infinitive}) ______.`, infinitive);
+    const subjectFromAI = getSubjectByText(aiPlan?.subject || "");
+    const subjectFromAISentence = inferSubjectFromSentence(aiPlan?.sentence || "");
+    const inferredSubject = inferSubjectFromSentence(sentenceFromFormat);
+    const subjectObj = subjectFromAI || subjectFromAISentence || inferredSubject || pickSubjectForTense(targetTense);
+    const correct = cleanConjugationOption(conjugateSpanishVerb(infinitive, targetTense, subjectObj));
+    if (!correct || isInfinitiveMatch(correct, infinitive)) throw new Error("Could not compute a valid conjugation.");
+
+    let sentence = aiPlan?.sentence
+      ? buildConjugationSentenceFromFormat(aiPlan.sentence, infinitive)
+      : buildSentenceInspiredByFormat({
+          formatInspiration,
+          infinitive,
+          subjectText: subjectObj.text,
+          tenseLabel: targetTense
+        });
+
+    // Guardrail: non-command tenses must not be phrased as commands.
+    if (!isCommandTense(targetTense) && sentenceLooksCommand(sentence)) {
+      sentence = buildSentenceInspiredByFormat({
+        formatInspiration,
+        infinitive,
+        subjectText: subjectObj.text,
+        tenseLabel: targetTense
+      });
+    }
+
+    // Keep format-inspired structure but avoid verbatim copies of the format line.
+    if (formatInspiration) {
+      const sim = similarityJaccard(formatInspiration, sentence);
+      const exact = normalizeCompareText(formatInspiration) === normalizeCompareText(sentence);
+      if (sim > 0.72 || exact) {
+        sentence = buildSentenceInspiredByFormat({
+          formatInspiration,
+          infinitive,
+          subjectText: subjectObj.text,
+          tenseLabel: targetTense
+        });
+      }
+    }
+
+    sentence = buildConjugationSentenceFromFormat(sentence, infinitive);
+
+    const baseDistractors = buildConjugationDistractors({
+      infinitive,
+      tenseLabel: targetTense,
+      subjectObj,
+      correct
+    });
+    let distractorsOnly = baseDistractors.filter(x => x.toLowerCase() !== correct.toLowerCase()).slice(0, 4);
+    if (distractorsOnly.length < 4) {
+      distractorsOnly = [
+        ...distractorsOnly,
+        ...buildExtraConjugationDistractors({
+          infinitive,
+          correct,
+          existing: distractorsOnly,
+          needed: 4 - distractorsOnly.length
+        })
+      ].slice(0, 4);
+    }
+
+    let options = shuffle([correct, ...distractorsOnly].slice(0, 5));
+    if (options.length < 5) {
+      const more = buildExtraConjugationDistractors({ infinitive, correct, existing: options, needed: 5 - options.length });
+      options = shuffle([...options, ...more].slice(0, 5));
+    }
+    if (options.length < 5) {
+      const { stem } = getVerbParts(infinitive);
+      const emergency = [`${stem}a`, `${stem}as`, `${stem}an`, `${stem}amos`, `${stem}e`, `${stem}en`]
+        .map(cleanConjugationOption)
+        .filter(Boolean)
+        .filter(x => x.toLowerCase() !== correct.toLowerCase())
+        .filter(x => !options.some(o => o.toLowerCase() === x.toLowerCase()));
+      options = shuffle([...options, ...emergency].slice(0, 5));
+    }
+
+    const tenseLabel = targetTense;
+    const conjugationInstruction = `Conjugate (${infinitive}) and choose the correct conjugated form.`;
+    const reflexiveMeta = isReflexiveInfinitive(infinitive) ? "Reflexive item: yes." : "Reflexive item: no.";
+    const logicMeta = `Rule: subject=${subjectObj.text} (${subjectObj.person} ${subjectObj.number}), tense=${tenseLabel}.`;
+    const localExplanation = buildLocalConjugationExplanation({
+      infinitive,
+      tenseLabel,
+      subjectObj,
+      correct
+    });
+    const conjugationSteps = buildConjugationWalkthroughSteps({
+      infinitive,
+      tenseLabel,
+      subjectObj,
+      correct
+    });
+    const irregularAlert = getIrregularityAlert({
+      infinitive,
+      tenseLabel,
+      subjectObj
+    });
+    return {
+      sentenceBlank: sentence,
+      questionMeta: [conjugationInstruction, tenseHintForDisplay(tenseLabel)].filter(Boolean).join(" "),
+      correct,
+      options,
+      selected: null,
+      isConjugation: true,
+      conjugationSteps,
+      sentenceFilled: sentence.replace("______", correct),
+      prepLine: `Correct conjugation: ${correct}`,
+      detailNotes: [
+        `Subject: ${subjectObj.text}. Required tense: ${tenseLabel}. Target verb: ${infinitive}.`,
+        reflexiveMeta,
+        irregularAlert,
+        logicMeta,
+        localExplanation
+      ].filter(Boolean).join(" ")
+    };
+  }
+
+  // ---------------- Hard distractors ----------------
+  const confusionPairs = [
+    ["por", "para"],
+    ["a", "en"],
+    ["de", "desde"],
+    ["sobre", "encima de"],
+    ["bajo", "debajo de"],
+    ["hasta", "hacia"],
+    ["entre", "alrededor de"],
+    ["con", "sin"],
+    ["antes de", "después de"],
+    ["delante de", "detrás de"]
+  ];
+
+  function tokensOf(sp) {
+    return sp.toLowerCase().split(/\s+/).filter(Boolean);
+  }
+
+  function similarityScore(correct, cand) {
+    const a = tokensOf(correct);
+    const b = tokensOf(cand);
+
+    const setA = new Set(a);
+    const setB = new Set(b);
+
+    const shared = [...setA].filter(x => setB.has(x)).length;
+
+    const lastA = a[a.length - 1] || "";
+    const lastB = b[b.length - 1] || "";
+    const firstA = a[0] || "";
+    const firstB = b[0] || "";
+
+    let score = 0;
+    if (a.length === b.length) score += 3;
+    if (lastA && lastA === lastB) score += 5;      // many phrases end in "de"
+    if (firstA && firstA === firstB) score += 4;
+    score += shared * 2;
+
+    const hasDeA = setA.has("de");
+    const hasDeB = setB.has("de");
+    if (hasDeA && hasDeB) score += 3;
+
+    // Prefer similarly “short/long”
+    if (correct.length <= 4 && cand.length <= 5) score += 2;
+    if (correct.length >= 7 && cand.length >= 7) score += 1;
+
+    return score;
+  }
+
+  function pickHardDistractors(allSpanishOptions, correct, avoidSet, count) {
+    const candidates = allSpanishOptions
+      .filter(x => !avoidSet.has(x) && x !== correct);
+
+    // Step 1: common confusion pair
+    const lowerCorrect = correct.toLowerCase();
+    const fromPairs = [];
+    for (const [x, y] of confusionPairs) {
+      if (lowerCorrect === x && candidates.some(c => c.toLowerCase() === y)) fromPairs.push(y);
+      if (lowerCorrect === y && candidates.some(c => c.toLowerCase() === x)) fromPairs.push(x);
+    }
+
+    const chosen = [];
+    for (const p of fromPairs) {
+      const real = candidates.find(c => c.toLowerCase() === p.toLowerCase());
+      if (real && chosen.length < count && !chosen.includes(real)) chosen.push(real);
+    }
+
+    // Step 2: similarity scoring
+    const scored = candidates
+      .filter(c => !chosen.includes(c))
+      .map(c => ({ c, s: similarityScore(correct, c) }))
+      .sort((u, v) => v.s - u.s);
+
+    // Take from top bucket for “confusable”
+    const top = scored.slice(0, 30).map(x => x.c);
+    for (const c of shuffle(top)) {
+      if (chosen.length >= count) break;
+      if (!chosen.includes(c)) chosen.push(c);
+    }
+
+    // Step 3: if still short, fill from rest
+    if (chosen.length < count) {
+      for (const c of shuffle(scored.slice(30).map(x => x.c))) {
+        if (chosen.length >= count) break;
+        if (!chosen.includes(c)) chosen.push(c);
+      }
+    }
+
+    return chosen.slice(0, count);
+  }
+
+  function tokensForMeaning(text) {
+    const stop = new Set(["to", "be", "the", "a", "an", "with", "of", "someone", "person"]);
+    return (text || "")
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, " ")
+      .split(/\s+/)
+      .filter(Boolean)
+      .filter(t => !stop.has(t));
+  }
+
+  function verbSimilarity(a, b) {
+    const x = a.toLowerCase();
+    const y = b.toLowerCase();
+    if (x === y) return 100;
+    let prefix = 0;
+    for (let i = 0; i < Math.min(x.length, y.length); i++) {
+      if (x[i] !== y[i]) break;
+      prefix++;
+    }
+    return prefix;
+  }
+
+  function meaningSimilarity(defA, defB) {
+    const a = new Set(tokensForMeaning(defA));
+    const b = new Set(tokensForMeaning(defB));
+    let shared = 0;
+    for (const token of a) if (b.has(token)) shared++;
+    return shared;
+  }
+
+  function pickVerbDistractors(entries, correctEntry, chosenDef, count) {
+    const candidates = entries.filter(e => e.verbLower !== correctEntry.verbLower);
+    const scored = candidates
+      .map(e => {
+        const bestMeaningScore = Math.max(...e.definitions.map(d => meaningSimilarity(chosenDef, d)), 0);
+        const lookScore = verbSimilarity(correctEntry.verb, e.verb);
+        return { entry: e, score: bestMeaningScore * 4 + lookScore };
+      })
+      .sort((a, b) => b.score - a.score);
+
+    const picked = [];
+    for (const item of scored) {
+      if (picked.length >= count) break;
+      if (!picked.some(p => p.verbLower === item.entry.verbLower)) picked.push(item.entry);
+    }
+    return picked.slice(0, count);
+  }
+
+  // ---------------- Quiz generation ----------------
+  async function buildQuestionData() {
+    const selectedModes = getSelectedModes();
+    const modePool = selectedModes.length ? selectedModes : [getFallbackMode()];
+    const mode = modePool[Math.floor(Math.random() * modePool.length)];
+    const parsed = refreshModeParsedData(mode.id);
+    const prepsEntries = parsed.prepsEntries;
+    const formatsLines = parsed.formatsLines;
+    const allSpanishOptions = parsed.allSpanishOptions;
+    const verbEntries = parsed.verbEntries;
+    const chacMoolEntries = parsed.chacMoolEntries || [];
+    const grammarEntries = parsed.grammarEntries || [];
+
+    if (mode.subject === "prepositions") {
+      if (!formatsLines.length) throw new Error(`${mode.formatsFileName} not loaded for mode: ${mode.label}`);
+      if (!prepsEntries.length) throw new Error(`${mode.dependentsFileName} not loaded for mode: ${mode.label}`);
+    }
+    if (mode.subject === "verb_vocab") {
+      if (!verbEntries.length) throw new Error(`${mode.dependentsFileName} not loaded for mode: ${mode.label}`);
+    }
+    if (mode.subject === "conjugation") {
+      if (!verbEntries.length) throw new Error(`${mode.dependentsFileName} not loaded for mode: ${mode.label}`);
+    }
+    if (mode.subject === "chac_mool") {
+      if (!chacMoolEntries.length) throw new Error(`${mode.dependentsFileName} not loaded for mode: ${mode.label}`);
+    }
+    // grammar_identify can run with built-in fallback items even if no file is loaded.
+
+    if (mode.subject === "verb_vocab") {
+      const correctEntry = verbEntries[Math.floor(Math.random() * verbEntries.length)];
+      const chosenDef = correctEntry.definitions[Math.floor(Math.random() * correctEntry.definitions.length)];
+      const distractorEntries = pickVerbDistractors(verbEntries, correctEntry, chosenDef, 4);
+
+      if (distractorEntries.length < 4) {
+        throw new Error("Not enough verbs for 5 options. Add more lines to verbs.txt.");
+      }
+
+      const correct = correctEntry.verb;
+      const options = shuffle([correct, ...distractorEntries.map(e => e.verb)]).slice(0, 5);
+
+      return {
+        sentenceBlank: `${chosenDef}?`,
+        questionMeta: "",
+        correct,
+        options,
+        selected: null,
+        isConjugation: false,
+        conjugationSteps: [],
+        sentenceFilled: correct,
+        prepLine: correctEntry.rawLine,
+        detailNotes: ""
+      };
+    }
+
+    if (mode.subject === "conjugation") {
+      return await buildConjugationQuestionData(mode, verbEntries);
+    }
+
+    if (mode.subject === "chac_mool") {
+      const excerpt = chacMoolEntries[Math.floor(Math.random() * chacMoolEntries.length)];
+      const system = "You are a Spanish literature teacher. Follow the output format exactly.";
+      let prompt =
+`Create one multiple-choice comprehension question based on this Chac Mool excerpt.
+
+Excerpt number: ${excerpt.index}
+Excerpt:
+${excerpt.text}
+
+Rules:
+- Write the QUESTION in Spanish.
+- Write all answer options in Spanish.
+- The question must be about a concrete detail, implication, action, tone, or relationship present in this excerpt.
+- The question must be answerable from this excerpt alone (without using section numbers or memorizing numbering).
+- Do NOT mention excerpt numbers, section numbers, or line numbers in QUESTION, CORRECT, or OPTIONS.
+- Write a new question based only on this excerpt.
+- QUESTION must be specific and content-grounded. Do not use generic templates like 'What is best supported by this excerpt?'.
+- Focus on happenings/events in the excerpt: actions, what happened, who did what, when/where something occurred, or immediate consequences.
+- Do NOT ask about story structure, narration technique, tone analysis, symbols, style, or literary devices.
+- Provide exactly 5 answer choices total (1 correct + 4 plausible distractors).
+- Keep options concise and distinct.
+- Correct answer must be clearly best-supported by the excerpt.
+
+Return EXACTLY these lines:
+QUESTION=<question text>
+CORRECT=<correct option text>
+OPTIONS=<option1 | option2 | option3 | option4 | option5>
+EXPLANATION=<short explanation of why CORRECT is best>
+
+No bullets. No extra lines.`;
+
+      let block = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const raw = await callLLM({ system, prompt, max_tokens: 280, temperature: 0.35, timeoutMs: 35000 });
+        const candidate = parseChacMoolBlock(raw);
+        const questionCandidate = candidate.question || "";
+        const optionsCandidate = (candidate.optionsRaw || "").split("|").map(x => x.trim()).filter(Boolean);
+        const optionsSpanishEnough = optionsCandidate.filter(isLikelySpanishText).length >= Math.min(4, optionsCandidate.length);
+        if (!isWeakChacQuestion(questionCandidate) && isHappeningsFocused(questionCandidate) && optionsCandidate.length >= 5 && optionsSpanishEnough) {
+          block = candidate;
+          break;
+        }
+
+        // Tighten constraints when retrying.
+        prompt += "\n\nRetry constraints: QUESTION and all OPTIONS must be in Spanish. QUESTION must ask about a concrete happening/event in the excerpt (not structure, tone, narrator, symbols, or style). Do not use generic templates.";
+      }
+
+      const fallbackStart = excerpt.text.split(/(?<=[.!?])\s+/).find(Boolean) || excerpt.text;
+      const fallbackLead = fallbackStart.split(/\s+/).slice(0, 14).join(" ");
+      const question = block?.question || `Segun el fragmento, que sucede inmediatamente en relacion con: "${fallbackLead}"?`;
+      let correct = (block?.correct || "").trim();
+      let options = (block?.optionsRaw || "")
+        .split("|")
+        .map(x => x.trim())
+        .filter(Boolean);
+
+      if (correct && !options.some(x => x.toLowerCase() === correct.toLowerCase())) options.push(correct);
+      options = Array.from(new Set(options));
+
+      if (options.length < 5) {
+        const fallback = [
+          "No hay suficiente informacion en el fragmento",
+          "El narrador cambia de tema sin explicarlo",
+          "El detalle principal contradice el tono del pasaje",
+          "La accion ocurre fuera del tiempo narrativo",
+          "La voz narrativa es completamente objetiva"
+        ].filter(x => !options.some(o => o.toLowerCase() === x.toLowerCase()));
+        options.push(...fallback.slice(0, 5 - options.length));
+      }
+
+      options = shuffle(options.slice(0, 5));
+      if (!correct) correct = options[0];
+      if (!options.some(x => x.toLowerCase() === correct.toLowerCase())) options[0] = correct;
+
+      const explanation = block?.explanation || "La opcion correcta es la que mejor se sustenta en los detalles especificos del fragmento.";
+
+      return {
+        sentenceBlank: question,
+        questionMeta: "Lectura: responde segun el detalle del fragmento.",
+        correct,
+        options,
+        selected: null,
+        isConjugation: false,
+        conjugationSteps: [],
+        sentenceFilled: correct,
+        prepLine: `Fragmento de Chac Mool`,
+        detailNotes: `Explicacion: ${explanation}`,
+        sourceExcerpt: excerpt.text,
+        sourceTitle: `Fragmento ${excerpt.index}`
+      };
+    }
+
+    if (mode.subject === "grammar_identify") {
+      const item = grammarEntries.length
+        ? grammarEntries[Math.floor(Math.random() * grammarEntries.length)]
+        : GRAMMAR_FALLBACK_ITEMS[Math.floor(Math.random() * GRAMMAR_FALLBACK_ITEMS.length)];
+
+      const system = "Eres profesor de gramatica. Responde en espanol y sigue el formato exacto.";
+      const prompt =
+`Crea una pregunta de identificacion gramatical en espanol usando este ejemplo base:
+
+Ejemplo base: ${item.text}
+Tipo correcto esperado: ${item.type}
+
+Categorias permitidas exactamente:
+${GRAMMAR_TYPES.map(x => `- ${x}`).join("\n")}
+
+Reglas:
+- La pregunta debe estar en espanol.
+- Debe pedir identificar el tipo gramatical del ejemplo.
+- El ejemplo puede ajustarse levemente, pero debe seguir correspondiendo al mismo tipo gramatical.
+- No uses numeros de seccion ni referencias externas.
+- Incluye 5 opciones exactamente, con solo una correcta.
+
+Devuelve EXACTAMENTE estas lineas:
+PROMPT=<pregunta en espanol>
+TEXT=<ejemplo textual a clasificar>
+TYPE=<una categoria correcta de la lista permitida>
+OPTIONS=<opcion1 | opcion2 | opcion3 | opcion4 | opcion5>
+EXPLANATION=<explicacion en espanol de por que TYPE es correcto y como identificarlo>
+
+Sin vietas. Sin texto extra.`;
+
+      const raw = await callLLM({ system, prompt, max_tokens: 220, temperature: 0.25, timeoutMs: 30000 });
+      const promptLine = parseNamedLineSimple(raw, "PROMPT") || "Que tipo gramatical representa el siguiente ejemplo?";
+      const textLine = parseNamedLineSimple(raw, "TEXT") || item.text;
+      const typeLine = normalizeGrammarType(parseNamedLineSimple(raw, "TYPE")) || item.type;
+      const optionsRaw = parseNamedLineSimple(raw, "OPTIONS");
+      const explanation = parseNamedLineSimple(raw, "EXPLANATION") || GRAMMAR_TYPE_EXPLANATIONS[typeLine] || "Identifica si hay verbo conjugado y si la idea es completa o depende de otra clausula.";
+
+      let options = (optionsRaw || "")
+        .split("|")
+        .map(x => normalizeGrammarType(x))
+        .filter(Boolean);
+      if (!options.some(x => x === typeLine)) options.push(typeLine);
+
+      const fill = shuffle(GRAMMAR_TYPES.filter(t => !options.includes(t))).slice(0, 5 - options.length);
+      options = Array.from(new Set([...options, ...fill])).slice(0, 5);
+      options = shuffle(options);
+      if (!options.includes(typeLine)) options[0] = typeLine;
+
+      return {
+        sentenceBlank: `${promptLine}\n\n"${textLine}"`,
+        questionMeta: "Modo gramatica: identifica el tipo correcto.",
+        correct: typeLine,
+        options,
+        selected: null,
+        isConjugation: false,
+        conjugationSteps: [],
+        sentenceFilled: typeLine,
+        prepLine: `Tipo correcto: ${typeLine}`,
+        detailNotes: `${GRAMMAR_TYPE_EXPLANATIONS[typeLine] || ""} ${explanation}`.trim()
+      };
+    }
+
+    let formatLine = null;
+    let bracketInfo = null;
+    for (let i = 0; i < 40; i++) {
+      const candidate = formatsLines[Math.floor(Math.random() * formatsLines.length)];
+      const b = extractBracket(candidate);
+      if (b) { formatLine = candidate; bracketInfo = b; break; }
+    }
+    if (!formatLine || !bracketInfo) throw new Error("No valid format line found (needs [brackets]).");
+
+    const { bracketRaw, bracketFull } = bracketInfo;
+    const sentenceBlank = formatLine.replace(bracketFull, "______");
+
+    const englishCandidates = splitEnglishCandidates(bracketRaw);
+    let matches = prepsEntries.filter(e => englishCandidates.includes(e.englishKeyLower));
+    if (!matches.length) {
+      const randomEntry = prepsEntries[Math.floor(Math.random() * prepsEntries.length)];
+      if (!randomEntry) throw new Error("No prepositions available. Load preps.txt first.");
+      matches = [randomEntry];
+    }
+
+    const candidateSet = new Set();
+    for (const m of matches) for (const sp of m.spanish) candidateSet.add(sp);
+    const candidateSpanish = Array.from(candidateSet);
+
+    const matchedPrepLines = matches.map(m => m.numberedLine || m.rawLine);
+    const englishCueForPrompt = matches[0].englishKeyRaw || bracketRaw;
+    const result = await chooseBestPreposition(
+      mode,
+      sentenceBlank,
+      formatLine,
+      englishCueForPrompt,
+      candidateSpanish,
+      matchedPrepLines,
+      showEnglishCueToggle.checked
+    );
+
+    const renderedSentenceBlank = result.sentenceBlank || sentenceBlank;
+    const correct = result.chosen;
+
+    const matchingEntries = matches.filter(m =>
+      m.spanish.some(sp => sp.toLowerCase() === correct.toLowerCase())
+    );
+    const chosenEntry = matchingEntries.length
+      ? matchingEntries[Math.floor(Math.random() * matchingEntries.length)]
+      : matches[0];
+
+    const englishCueForBlank = chosenEntry.englishKeyRaw || bracketRaw;
+    const prepLine = chosenEntry
+      ? chosenEntry.numberedLine
+      : `${matches[0].numberedLine}`;
+
+    const enforcedSentenceBlank = showEnglishCueToggle.checked
+      ? ensureBracketCue(renderedSentenceBlank, englishCueForBlank)
+      : removeBracketCues(renderedSentenceBlank);
+    const enforcedSentenceFilled = enforcedSentenceBlank.replace("______", correct);
+
+    const avoidSet = new Set(candidateSpanish);
+    avoidSet.add(correct);
+
+    const distractors = pickHardDistractors(allSpanishOptions, correct, avoidSet, 4);
+    if (distractors.length < 4) {
+      throw new Error("Not enough distractors found. Add more entries to preps.txt so the pool is larger.");
+    }
+
+    const options = shuffle([correct, ...distractors.slice(0, 4)]);
+
+    return {
+      sentenceBlank: enforcedSentenceBlank,
+      questionMeta: "",
+      correct,
+      options,
+      selected: null,
+      isConjugation: false,
+      conjugationSteps: [],
+      sentenceFilled: enforcedSentenceFilled,
+      prepLine,
+      detailNotes: ""
+    };
+  }
+
+  function prefetchNextQuestion() {
+    if (prefetchPromise) return;
+    prefetchPromise = buildQuestionData()
+      .then(data => { prefetchedQuestion = data; })
+      .catch(() => {})
+      .finally(() => { prefetchPromise = null; });
+  }
+
+  async function generateQuestion() {
+    clearError();
+    resetQuestionUI();
+
+    modelPill.textContent =
+      `Provider: ${providerDisplayName(providerEl.value)} • Model: ${modelEl.value.trim() || "(unset)"}`;
+
+    loading.style.display = "block";
+    quizBody.style.display = "none";
+
+    try {
+      current = prefetchedQuestion || await buildQuestionData();
+      prefetchedQuestion = null;
+      renderQuestion();
+      prefetchNextQuestion();
+    } catch (e) {
+      showError(String(e?.message || e));
+    } finally {
+      loading.style.display = "none";
+      quizBody.style.display = "block";
+    }
+  }
+
+  async function checkAnswer() {
+    if (!current || !current.selected) return;
+
+    const ok = current.selected === current.correct;
+    const selectedDontKnow = current.selected === DONT_KNOW_OPTION;
+    lockChoicesAndMark();
+
+    feedbackEl.style.display = "block";
+    feedbackEl.className = "feedback show " + (ok ? "correct" : "incorrect");
+    feedbackEl.innerHTML = ok
+      ? `<strong>Correct.</strong>`
+      : selectedDontKnow
+        ? `<strong>No problem.</strong> You selected <strong>${DONT_KNOW_OPTION}</strong>. Correct answer: <strong>${current.correct}</strong>`
+        : `<strong>Incorrect.</strong> Correct answer: <strong>${current.correct}</strong>`;
+
+    // Show the selected source preposition line after answering.
+    translationEl.style.display = "block";
+    translationEl.className = "translation show";
+    setPrepositionBox({
+      prepLine: current.prepLine,
+      sentenceFilled: current.sentenceFilled,
+      detailNotes: current.detailNotes,
+      sourceExcerpt: current.sourceExcerpt,
+      sourceTitle: current.sourceTitle
+    });
+
+    if (current.isConjugation && showConjWalkthroughToggle.checked && current.conjugationSteps?.length) {
+      walkthroughStepIndex = 0;
+      walkthroughBtn.style.display = "inline-block";
+      renderWalkthroughPanel();
+    }
+
+    submitBtn.style.display = "none";
+    ackBtn.style.display = "inline-block";
+    nextBtn.style.display = "none";
+  }
+
+  function acknowledge() {
+    ackBtn.style.display = "none";
+    nextBtn.style.display = "inline-block";
+  }
+
+  function saveDependentsTextForMode(modeId, text) {
+    const mode = getModeById(modeId);
+    const data = getModeData(mode.id);
+    data.dependentsText = text;
+    localStorage.setItem(mode.dependentsStorageKey, text);
+    // Only store in cookie if it's small enough, to avoid cookie limit errors (4KB max) and HTTP 431 errors
+    if (encodeURIComponent(text).length < 3800) {
+      setCookie(mode.dependentsCookieName, text);
+    } else {
+      deleteCookie(mode.dependentsCookieName);
+    }
+    refreshModeParsedData(mode.id);
+  }
+
+  function saveFormatsTextForMode(modeId, text) {
+    const mode = getModeById(modeId);
+    const data = getModeData(mode.id);
+    data.formatsText = text;
+    localStorage.setItem(mode.formatsStorageKey, text);
+    // Only store in cookie if it's small enough, to avoid cookie limit errors (4KB max) and HTTP 431 errors
+    if (encodeURIComponent(text).length < 3800) {
+      setCookie(mode.formatsCookieName, text);
+    } else {
+      deleteCookie(mode.formatsCookieName);
+    }
+    refreshModeParsedData(mode.id);
+  }
+
+  // ---------------- Setup actions ----------------
+  function saveKey() {
+    clearError();
+    const provider = providerEl.value;
+    const cookieName = providerKeyCookieName(provider);
+    const k = apiKeyInput.value.trim();
+    if (!k) return showError("Enter your API key first.");
+    setCookie(cookieName, k);
+    keyStatus.style.display = "inline";
+  }
+
+  function clearKey() {
+    clearError();
+    const provider = providerEl.value;
+    const cookieName = providerKeyCookieName(provider);
+    deleteCookie(cookieName);
+    apiKeyInput.value = "";
+    keyStatus.style.display = "none";
+  }
+
+  function savePreps() {
+    clearError();
+    const mode = getModeById(modeDataModeSelect.value || getFallbackMode().id);
+    const t = prepsText.value.trim();
+    if (!t) return showError(`Paste or load ${mode.dependentsFileName} content.`);
+    
+    saveDependentsTextForMode(mode.id, t);
+    const parsed = refreshModeParsedData(mode.id);
+    
+    if (mode.subject === "prepositions" && !parsed.prepsEntries.length) {
+      return showError(`${mode.dependentsFileName} parsing found 0 usable lines. Must look like: 'About (...) - acerca de, sobre' (numbering optional)`);
+    }
+    if (mode.subject === "chac_mool" && !parsed.chacMoolEntries.length) {
+      return showError(`${mode.dependentsFileName} parsing found 0 usable excerpts. Must look like numbered blocks such as '1. ...', '2. ...', up to your full set.`);
+    }
+    if (mode.subject === "grammar_identify" && !parsed.grammarEntries.length) {
+      return showError(`${mode.dependentsFileName} parsing found 0 usable grammar items. Use lines like: 'Aunque llueva | clausula dependiente'.`);
+    }
+    if ((mode.subject === "verb_vocab" || mode.subject === "conjugation") && !parsed.verbEntries.length) {
+      return showError(`${mode.dependentsFileName} parsing found 0 usable lines. Must look like: 'gustar - to like; to please' (numbering optional)`);
+    }
+    prepsStatus.style.display = "inline";
+  }
+
+  function saveFormats() {
+    clearError();
+    const mode = getModeById(modeDataModeSelect.value || getFallbackMode().id);
+    if (!mode.requiresFormats) {
+      formatsStatus.style.display = "none";
+      return;
+    }
+    const t = formatsText.value.trim();
+    if (!t) return showError(`Paste or load ${mode.formatsFileName} content.`);
+    
+    saveFormatsTextForMode(mode.id, t);
+    const parsed = refreshModeParsedData(mode.id);
+    
+    if (!parsed.formatsLines.length) return showError(`${mode.formatsFileName} parsing found 0 usable lines.`);
+    formatsStatus.style.display = "inline";
+  }
+
+  function startQuiz() {
+    clearError();
+    localStorage.setItem("provider", providerEl.value);
+    localStorage.setItem("model", modelEl.value.trim());
+    localStorage.setItem("show_english_cue", showEnglishCueToggle.checked ? "1" : "0");
+    localStorage.setItem("show_conj_walkthrough", showConjWalkthroughToggle.checked ? "1" : "0");
+    localStorage.setItem("reflexive_chance", String(Math.max(0, Math.min(100, Number(reflexiveChanceInput.value || 0)))));
+
+    const selectedModeIds = getSelectedModeIds();
+    saveModeIds(selectedModeIds);
+
+    const selectedModes = getSelectedModes();
+    const modePool = selectedModes.length ? selectedModes : [getFallbackMode()];
+    for (const mode of modePool) {
+      const parsed = refreshModeParsedData(mode.id);
+      if (mode.subject === "prepositions" && (!parsed.prepsEntries.length || !parsed.formatsLines.length)) {
+        return showError(`Missing data for mode '${mode.label}'. Load ${mode.dependentsFileName} and ${mode.formatsFileName}.`);
+      }
+      if (mode.subject === "chac_mool" && !parsed.chacMoolEntries.length) {
+        return showError(`Missing data for mode '${mode.label}'. Load ${mode.dependentsFileName}.`);
+      }
+      if ((mode.subject === "verb_vocab" || mode.subject === "conjugation") && !parsed.verbEntries.length) {
+        return showError(`Missing data for mode '${mode.label}'. Load ${mode.dependentsFileName}.`);
+      }
+    }
+
+    setup.classList.add("hidden");
+    quiz.classList.add("active");
+
+    prefetchedQuestion = null;
+    prefetchPromise = null;
+    resetQuestionUI();
+    generateQuestion();
+  }
+
+  function backToSetup() {
+    quiz.classList.remove("active");
+    setup.classList.remove("hidden");
+    prefetchedQuestion = null;
+    prefetchPromise = null;
+    resetQuestionUI();
+    clearError();
+  }
+
+  async function tryAutoLoadTxtIfEmpty() {
+    for (const mode of MODE_DEFS) {
+      const data = getModeData(mode.id);
+      const cookieDependents = getCookie(mode.dependentsCookieName);
+      const cookieFormats = getCookie(mode.formatsCookieName);
+      const savedDependents = localStorage.getItem(mode.dependentsStorageKey);
+      const savedFormats = localStorage.getItem(mode.formatsStorageKey);
+
+      if (cookieDependents) data.dependentsText = cookieDependents;
+      else if (savedDependents) data.dependentsText = savedDependents;
+
+      if (cookieFormats) data.formatsText = cookieFormats;
+      else if (savedFormats) data.formatsText = savedFormats;
+
+      if (!data.dependentsText.trim()) {
+        try {
+          const r = await fetch(mode.dependentsFileName, { cache: "no-store" });
+          if (r.ok) data.dependentsText = await r.text();
+        } catch {}
+      }
+
+      if (!data.formatsText.trim()) {
+        try {
+          const r = await fetch(mode.formatsFileName, { cache: "no-store" });
+          if (r.ok) data.formatsText = await r.text();
+        } catch {}
+      }
+
+      if (data.dependentsText) {
+        localStorage.setItem(mode.dependentsStorageKey, data.dependentsText);
+        setCookie(mode.dependentsCookieName, data.dependentsText);
+      }
+      if (data.formatsText) {
+        localStorage.setItem(mode.formatsStorageKey, data.formatsText);
+        setCookie(mode.formatsCookieName, data.formatsText);
+      }
+
+      refreshModeParsedData(mode.id);
+    }
+
+    syncModeDataEditorUI();
+  }
+
+  async function loadFromFileInput(fileInput, textarea) {
+    const f = fileInput.files?.[0];
+    if (!f) return;
+    textarea.value = await f.text();
+  }
+
+  function updateProviderUI() {
+    const provider = providerEl.value;
+    const cookieName = providerKeyCookieName(provider);
+    const key = getCookie(cookieName);
+
+    apiKeyLabel.textContent = `${providerDisplayName(provider)} API Key (saved in cookie)`;
+
+    if (provider === "openai") {
+      if (!modelEl.value.trim() || modelEl.value.trim().startsWith("openai/")) modelEl.value = "gpt-5-nano";
+      apiKeyInput.placeholder = "sk-...";
+    } else {
+      if (!modelEl.value.trim() || modelEl.value.trim() === "gpt-5-nano") modelEl.value = "openai/gpt-5-nano";
+      apiKeyInput.placeholder = "sk-or-v1-...";
+    }
+
+    apiKeyInput.value = key || "";
+    keyStatus.style.display = key ? "inline" : "none";
+
+    modelPill.textContent = `Provider: ${providerDisplayName(provider)} • Model: ${modelEl.value.trim() || "(unset)"}`;
+  }
+
+  // ---------------- Events ----------------
+  document.getElementById("saveKeyBtn").addEventListener("click", saveKey);
+  document.getElementById("clearKeyBtn").addEventListener("click", clearKey);
+  document.getElementById("savePrepsBtn").addEventListener("click", savePreps);
+  document.getElementById("saveFormatsBtn").addEventListener("click", saveFormats);
+  document.getElementById("startBtn").addEventListener("click", startQuiz);
+
+  submitBtn.addEventListener("click", checkAnswer);
+  walkthroughBtn.addEventListener("click", () => {
+    if (!current?.isConjugation || !current?.conjugationSteps?.length) return;
+    if (walkthroughPanel.style.display === "none") {
+      renderWalkthroughPanel();
+    } else {
+      walkthroughPanel.style.display = "none";
+    }
+  });
+  ackBtn.addEventListener("click", acknowledge);
+  nextBtn.addEventListener("click", generateQuestion);
+  backBtn.addEventListener("click", backToSetup);
+
+  providerEl.addEventListener("change", () => { localStorage.setItem("provider", providerEl.value); updateProviderUI(); });
+  modelEl.addEventListener("input", () => {
+    localStorage.setItem("model", modelEl.value.trim());
+    modelPill.textContent = `Provider: ${providerDisplayName(providerEl.value)} • Model: ${modelEl.value.trim() || "(unset)"}`;
+  });
+
+  showEnglishCueToggle.addEventListener("change", () => {
+    localStorage.setItem("show_english_cue", showEnglishCueToggle.checked ? "1" : "0");
+  });
+
+  showTenseHintToggle.addEventListener("change", () => {
+    localStorage.setItem("show_tense_hint", showTenseHintToggle.checked ? "1" : "0");
+  });
+
+  showConjWalkthroughToggle.addEventListener("change", () => {
+    localStorage.setItem("show_conj_walkthrough", showConjWalkthroughToggle.checked ? "1" : "0");
+  });
+
+  reflexiveChanceInput.addEventListener("input", () => {
+    const v = Math.max(0, Math.min(100, Number(reflexiveChanceInput.value || 0)));
+    reflexiveChanceInput.value = String(v);
+    reflexiveChanceValue.textContent = String(v);
+    localStorage.setItem("reflexive_chance", String(v));
+  });
+
+  modesList.addEventListener("change", () => {
+    const ids = getSelectedModeIds();
+    saveModeIds(ids);
+  });
+
+  modeDataModeSelect.addEventListener("change", () => {
+    syncModeDataEditorUI();
+  });
+
+  document.getElementById("prepsFile").addEventListener("change", async (e) => {
+    await loadFromFileInput(e.target, prepsText);
+    const mode = getModeById(modeDataModeSelect.value || getFallbackMode().id);
+    saveDependentsTextForMode(mode.id, prepsText.value);
+    syncModeDataEditorUI();
+  });
+
+  document.getElementById("formatsFile").addEventListener("change", async (e) => {
+    await loadFromFileInput(e.target, formatsText);
+    const mode = getModeById(modeDataModeSelect.value || getFallbackMode().id);
+    if (mode.requiresFormats) {
+      saveFormatsTextForMode(mode.id, formatsText.value);
+    }
+    syncModeDataEditorUI();
+  });
+
+  document.getElementById("verbsFile").addEventListener("change", async (e) => {
+    const fileInput = e.target;
+    const f = fileInput.files?.[0];
+    if (!f) return;
+    const text = await f.text();
+    saveDependentsTextForMode("conjugation", text);
+    if ((modeDataModeSelect.value || "") === "conjugation") {
+      prepsText.value = text;
+    }
+    syncModeDataEditorUI();
+  });
+
+  // ---------------- Init ----------------
+  (async function init() {
+    const savedProvider = localStorage.getItem("provider");
+    const savedModel = localStorage.getItem("model");
+    if (savedProvider === "openai" || savedProvider === "openrouter") providerEl.value = savedProvider;
+    if (savedModel) modelEl.value = savedModel;
+
+    const savedShowCue = localStorage.getItem("show_english_cue");
+    showEnglishCueToggle.checked = savedShowCue !== "0";
+    const savedShowTenseHint = localStorage.getItem("show_tense_hint");
+    showTenseHintToggle.checked = savedShowTenseHint !== "0";
+    const savedConjWalkthrough = localStorage.getItem("show_conj_walkthrough");
+    showConjWalkthroughToggle.checked = savedConjWalkthrough !== "0";
+    const savedReflexiveChance = localStorage.getItem("reflexive_chance");
+    const reflexiveChanceNum = Math.max(0, Math.min(100, Number(savedReflexiveChance ?? "0")));
+    reflexiveChanceInput.value = String(reflexiveChanceNum);
+    reflexiveChanceValue.textContent = String(reflexiveChanceNum);
+
+    renderModeDataEditorOptions();
+    modeDataModeSelect.value = getFallbackMode().id;
+    renderModesUI();
+
+    await tryAutoLoadTxtIfEmpty();
+    updateProviderUI();
+  })();
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a05aaee74b285cb9',t:'MTc4MDQ0NzYxMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
