@@ -1,0 +1,3049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spanish Conjugation Practice — Conjugador</title>
+<!-- Note: Tailwind CSS CDN needed for initial load. After first load, browser caches it for offline use -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<!-- Fallback styles if Tailwind doesn't load -->
+<style>
+  /* System font stack for offline fallback */
+  body { 
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    min-height: 100vh;
+    color: white;
+    margin: 0;
+    padding: 0;
+  }
+  .fade-in { animation: fadeIn 0.4s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .shake { animation: shake 0.4s ease-in-out; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+  .pulse-green { animation: pulseGreen 0.5s ease-out; }
+  @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); } 100% { box-shadow: 0 0 0 20px rgba(34,197,94,0); } }
+  .glow-correct { box-shadow: 0 0 15px rgba(34,197,94,0.4); }
+  .glow-wrong { box-shadow: 0 0 15px rgba(239,68,68,0.4); }
+  .progress-bar { transition: width 0.5s ease-out; }
+  .tooltip { position: relative; }
+  .tooltip:hover::after {
+    content: attr(data-tip);
+    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: white; padding: 4px 10px; border-radius: 6px;
+    font-size: 12px; white-space: nowrap; z-index: 50;
+  }
+  input[type="text"]:focus { outline: none; }
+  .stat-card { transition: transform 0.2s; }
+  .stat-card:hover { transform: translateY(-2px); }
+  .streak-fire { display: inline-block; animation: fireGlow 1s ease-in-out infinite alternate; }
+  @keyframes fireGlow { from { filter: brightness(1); } to { filter: brightness(1.3); } }
+  .confetti-piece { position: fixed; pointer-events: none; z-index: 9999; animation: confettiFall 2s ease-out forwards; }
+  @keyframes confettiFall { 0% { opacity: 1; transform: translateY(0) rotate(0deg); } 100% { opacity: 0; transform: translateY(100vh) rotate(720deg); } }
+</style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen text-white">
+
+<!-- Header -->
+<header class="border-b border-white/10 bg-black/20 backdrop-blur-sm sticky top-0 z-40">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <span class="text-2xl">🇪🇸</span>
+      <h1 class="text-xl font-bold bg-gradient-to-r from-yellow-400 via-red-400 to-yellow-400 bg-clip-text text-transparent">Conjugador</h1>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <button onclick="showTab('practice')" id="btn-practice" class="tab-btn px-3 py-1.5 rounded-lg text-sm font-medium bg-indigo-600 text-white transition">Practice</button>
+      <button onclick="showTab('learn')" id="btn-learn" class="tab-btn px-3 py-1.5 rounded-lg text-sm font-medium text-white/60 hover:text-white transition">📖 Learn</button>
+      <button onclick="showTab('stats')" id="btn-stats" class="tab-btn px-3 py-1.5 rounded-lg text-sm font-medium text-white/60 hover:text-white transition">Stats</button>
+      <button onclick="showTab('verbs')" id="btn-verbs" class="tab-btn px-3 py-1.5 rounded-lg text-sm font-medium text-white/60 hover:text-white transition">Verbs</button>
+      <button onclick="showTab('settings')" id="btn-settings" class="tab-btn px-3 py-1.5 rounded-lg text-sm font-medium text-white/60 hover:text-white transition">⚙️</button>
+    </div>
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="max-w-5xl mx-auto px-4 py-6">
+
+  <!-- Practice Tab -->
+  <div id="tab-practice" class="tab-content">
+    <!-- Mastery Progress Section -->
+    <div class="bg-gradient-to-r from-emerald-500/10 via-indigo-500/10 to-purple-500/10 border border-white/10 rounded-2xl p-4 mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🏆</span>
+          <div>
+            <h3 class="font-bold text-white">Mastery Progress</h3>
+            <p class="text-xs text-white/50">Get each verb/tense/person combination correct to master it</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-2xl font-bold text-emerald-400" id="mastery-count">0 / 900</div>
+          <div class="text-xs text-white/40">combinations mastered</div>
+        </div>
+      </div>
+      <!-- Main Progress Bar -->
+      <div class="relative">
+        <div class="bg-white/10 rounded-full h-4 overflow-hidden">
+          <div id="mastery-progress-bar" class="progress-bar bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 h-full rounded-full transition-all duration-500" style="width:0%"></div>
+        </div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span id="mastery-percentage" class="text-xs font-bold text-white drop-shadow-lg">0%</span>
+        </div>
+      </div>
+      <!-- Tense Breakdown -->
+      <div class="grid grid-cols-3 gap-2 mt-3">
+        <div class="bg-white/5 rounded-lg p-2 text-center">
+          <div class="text-xs text-indigo-300 mb-1">Subjunctive</div>
+          <div class="flex items-center justify-center gap-1">
+            <span id="mastery-subj-count" class="font-bold text-white text-sm">0</span>
+            <span class="text-white/30 text-xs">/ 300</span>
+          </div>
+          <div class="bg-white/10 rounded-full h-1 mt-1 overflow-hidden">
+            <div id="mastery-subj-bar" class="bg-indigo-500 h-full rounded-full" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="bg-white/5 rounded-lg p-2 text-center">
+          <div class="text-xs text-emerald-300 mb-1">Aff. Commands</div>
+          <div class="flex items-center justify-center gap-1">
+            <span id="mastery-aff-count" class="font-bold text-white text-sm">0</span>
+            <span class="text-white/30 text-xs">/ 300</span>
+          </div>
+          <div class="bg-white/10 rounded-full h-1 mt-1 overflow-hidden">
+            <div id="mastery-aff-bar" class="bg-emerald-500 h-full rounded-full" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="bg-white/5 rounded-lg p-2 text-center">
+          <div class="text-xs text-rose-300 mb-1">Neg. Commands</div>
+          <div class="flex items-center justify-center gap-1">
+            <span id="mastery-neg-count" class="font-bold text-white text-sm">0</span>
+            <span class="text-white/30 text-xs">/ 300</span>
+          </div>
+          <div class="bg-white/10 rounded-full h-1 mt-1 overflow-hidden">
+            <div id="mastery-neg-bar" class="bg-rose-500 h-full rounded-full" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Queue Info -->
+      <div class="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
+        <div class="flex items-center gap-2">
+          <span class="text-white/40 text-xs">Queue:</span>
+          <span id="queue-remaining" class="text-white/70 text-sm font-medium">900 remaining</span>
+        </div>
+        <button onclick="reshuffleQueue()" class="text-xs text-indigo-400 hover:text-indigo-300 transition flex items-center gap-1">
+          <span>🔀</span> Reshuffle
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+      <div class="stat-card bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+        <div class="text-xs text-white/40 uppercase tracking-wider">Streak</div>
+        <div class="text-2xl font-bold text-amber-400" id="display-streak">0 <span class="streak-fire" id="streak-fire" style="display:none">🔥</span></div>
+      </div>
+      <div class="stat-card bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+        <div class="text-xs text-white/40 uppercase tracking-wider">Session</div>
+        <div class="text-2xl font-bold text-indigo-400" id="display-session">0/0</div>
+      </div>
+      <div class="stat-card bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+        <div class="text-xs text-white/40 uppercase tracking-wider">Accuracy</div>
+        <div class="text-2xl font-bold text-emerald-400" id="display-accuracy">—</div>
+      </div>
+      <div class="stat-card bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+        <div class="text-xs text-white/40 uppercase tracking-wider">Best Streak</div>
+        <div class="text-2xl font-bold text-rose-400" id="display-best-streak">0</div>
+      </div>
+    </div>
+
+    <!-- Question Card -->
+    <div id="question-card" class="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl p-6 sm:p-8 mb-6 fade-in">
+      <!-- Tense Badge -->
+      <div class="flex items-center justify-between mb-4">
+        <span id="tense-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"></span>
+        <button onclick="skipQuestion()" class="text-white/30 hover:text-white/60 text-sm transition flex items-center gap-1">
+          Skip <span class="text-xs">→</span>
+        </button>
+      </div>
+
+      <!-- Verb Display -->
+      <div class="text-center mb-6">
+        <div class="text-3xl sm:text-4xl font-bold mb-2" id="verb-display"></div>
+        <div class="text-white/50 text-sm" id="verb-meaning"></div>
+      </div>
+
+      <!-- Person -->
+      <div class="text-center mb-6">
+        <span class="text-lg text-amber-300 font-semibold" id="person-display"></span>
+      </div>
+
+      <!-- Input -->
+      <div class="max-w-md mx-auto mb-4">
+        <div class="relative">
+          <input type="text" id="answer-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            class="w-full bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 text-center text-xl font-medium text-white placeholder-white/30 focus:border-indigo-400 transition"
+            placeholder="Type your answer..."
+            onkeydown="if(event.key==='Enter') checkAnswer()">
+          <div id="input-icon" class="absolute right-3 top-1/2 -translate-y-1/2 text-xl opacity-0 transition-opacity"></div>
+        </div>
+        <!-- Accent helpers -->
+        <div class="flex justify-center gap-2 mt-3">
+          <button onclick="insertChar('á')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">á</button>
+          <button onclick="insertChar('é')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">é</button>
+          <button onclick="insertChar('í')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">í</button>
+          <button onclick="insertChar('ó')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">ó</button>
+          <button onclick="insertChar('ú')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">ú</button>
+          <button onclick="insertChar('ñ')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">ñ</button>
+          <button onclick="insertChar('ü')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">ü</button>
+        </div>
+      </div>
+
+      <!-- Submit / Feedback -->
+      <div class="text-center">
+        <button onclick="checkAnswer()" id="submit-btn" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold text-white transition transform hover:scale-105 active:scale-95">
+          Check
+        </button>
+        <button onclick="nextQuestion()" id="next-btn" class="hidden px-8 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-semibold text-white transition transform hover:scale-105 active:scale-95">
+          Next →
+        </button>
+      </div>
+
+      <!-- Feedback area -->
+      <div id="feedback-area" class="mt-4 text-center hidden fade-in">
+        <div id="feedback-text" class="text-lg font-medium"></div>
+        <div id="correct-answer-display" class="mt-1 text-white/50 text-sm"></div>
+      </div>
+    </div>
+
+    <!-- Recent History -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+      <h3 class="text-sm font-semibold text-white/40 uppercase tracking-wider mb-3">Recent Attempts</h3>
+      <div id="recent-history" class="space-y-2 max-h-60 overflow-y-auto">
+        <div class="text-white/30 text-sm text-center py-4">No attempts yet — start practicing!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Tab -->
+  <div id="tab-stats" class="tab-content hidden">
+    <!-- Mastery Overview -->
+    <div class="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-white/10 rounded-2xl p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold flex items-center gap-2">🏆 Mastery Overview</h3>
+        <span id="stats-mastery-percentage" class="text-2xl font-bold text-emerald-400">0%</span>
+      </div>
+      <div class="grid grid-cols-3 gap-4 mb-4" id="stats-mastery-grid">
+        <!-- Filled by JS -->
+      </div>
+      <div class="bg-white/10 rounded-full h-3 overflow-hidden">
+        <div id="stats-mastery-bar" class="bg-gradient-to-r from-emerald-500 to-cyan-500 h-full rounded-full transition-all" style="width:0%"></div>
+      </div>
+      <p class="text-xs text-white/40 mt-2 text-center">Get each of the 900 verb/tense/person combinations correct to achieve 100% mastery</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+        <h3 class="text-lg font-bold mb-4">📊 Overall Stats</h3>
+        <div class="space-y-3">
+          <div class="flex justify-between"><span class="text-white/50">Total Attempts</span><span class="font-bold" id="stat-total">0</span></div>
+          <div class="flex justify-between"><span class="text-white/50">Correct</span><span class="font-bold text-emerald-400" id="stat-correct">0</span></div>
+          <div class="flex justify-between"><span class="text-white/50">Incorrect</span><span class="font-bold text-rose-400" id="stat-incorrect">0</span></div>
+          <div class="flex justify-between"><span class="text-white/50">Accuracy</span><span class="font-bold text-indigo-400" id="stat-accuracy">—</span></div>
+          <div class="flex justify-between"><span class="text-white/50">Best Streak</span><span class="font-bold text-amber-400" id="stat-best-streak">0</span></div>
+          <div class="flex justify-between"><span class="text-white/50">Current Streak</span><span class="font-bold text-amber-400" id="stat-cur-streak">0</span></div>
+          <div class="flex justify-between border-t border-white/10 pt-3 mt-3"><span class="text-white/50">Mastered Combos</span><span class="font-bold text-emerald-400" id="stat-mastered">0 / 900</span></div>
+        </div>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+        <h3 class="text-lg font-bold mb-4">📈 By Tense</h3>
+        <div class="space-y-3" id="stats-by-tense"></div>
+      </div>
+    </div>
+
+    <!-- Per-Verb Stats -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+      <h3 class="text-lg font-bold mb-4">📝 Per-Verb Performance</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-white/40 text-left">
+              <th class="pb-2 pr-4 cursor-pointer hover:text-white" onclick="sortVerbStats('verb')">Verb ↕</th>
+              <th class="pb-2 pr-4 text-center cursor-pointer hover:text-white" onclick="sortVerbStats('attempts')">Attempts ↕</th>
+              <th class="pb-2 pr-4 text-center cursor-pointer hover:text-white" onclick="sortVerbStats('accuracy')">Accuracy ↕</th>
+              <th class="pb-2 text-center">Progress</th>
+            </tr>
+          </thead>
+          <tbody id="verb-stats-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Trouble Spots -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+      <h3 class="text-lg font-bold mb-4">⚠️ Trouble Spots</h3>
+      <div id="trouble-spots" class="space-y-2"></div>
+    </div>
+
+    <!-- Common Mistakes Analysis -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+      <h3 class="text-lg font-bold mb-4">🔍 Common Mistake Patterns</h3>
+      <p class="text-white/50 text-sm mb-4">Understanding your mistake patterns helps you focus your practice.</p>
+      <div id="mistake-patterns" class="space-y-3"></div>
+    </div>
+
+    <!-- Export / Import / Reset -->
+    <div class="flex flex-wrap gap-3">
+      <button onclick="exportData()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-medium text-sm transition">📤 Export Data</button>
+      <button onclick="document.getElementById('import-file').click()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-medium text-sm transition">📥 Import Data</button>
+      <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
+      <button onclick="confirmResetMastery()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-xl font-medium text-sm transition">🔄 Reset Mastery Only</button>
+      <button onclick="confirmReset()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 rounded-xl font-medium text-sm transition">🗑️ Reset All Data</button>
+    </div>
+  </div>
+
+  <!-- Verb List Tab -->
+  <div id="tab-verbs" class="tab-content hidden">
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+      <h3 class="text-lg font-bold mb-4">📚 Verb Reference List</h3>
+      <div class="space-y-2" id="verb-list-display"></div>
+    </div>
+  </div>
+
+  <!-- Settings Tab -->
+  <div id="tab-settings" class="tab-content hidden">
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
+      <h3 class="text-lg font-bold mb-2">⚙️ Settings</h3>
+
+      <div>
+        <label class="block text-sm font-medium text-white/60 mb-2">Session Size</label>
+        <select id="setting-session-size" class="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white" onchange="saveSettings()">
+          <option value="10">10 questions</option>
+          <option value="20" selected>20 questions</option>
+          <option value="30">30 questions</option>
+          <option value="50">50 questions</option>
+          <option value="0">Endless</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="setting-strict-accents" checked class="w-5 h-5 rounded accent-indigo-500" onchange="saveSettings()">
+          <div>
+            <span class="font-medium">Strict Accents</span>
+            <p class="text-xs text-white/40">Require correct accent marks (á, é, í, ó, ú, ñ)</p>
+          </div>
+        </label>
+      </div>
+
+      <div>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="setting-show-meaning" checked class="w-5 h-5 rounded accent-indigo-500" onchange="saveSettings()">
+          <div>
+            <span class="font-medium">Show Meaning</span>
+            <p class="text-xs text-white/40">Display the English translation during practice</p>
+          </div>
+        </label>
+      </div>
+
+      <div>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="setting-weighted" checked class="w-5 h-5 rounded accent-indigo-500" onchange="saveSettings()">
+          <div>
+            <span class="font-medium">Weighted Selection</span>
+            <p class="text-xs text-white/40">Prioritize verbs you struggle with more often</p>
+          </div>
+        </label>
+      </div>
+
+      <div>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="setting-sound" checked class="w-5 h-5 rounded accent-indigo-500" onchange="saveSettings()">
+          <div>
+            <span class="font-medium">Sound Effects</span>
+            <p class="text-xs text-white/40">Play sounds on correct/incorrect answers</p>
+          </div>
+        </label>
+      </div>
+
+      <div>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" id="setting-confetti" checked class="w-5 h-5 rounded accent-indigo-500" onchange="saveSettings()">
+          <div>
+            <span class="font-medium">Confetti on Streaks</span>
+            <p class="text-xs text-white/40">Celebrate every 10-streak with confetti</p>
+          </div>
+        </label>
+      </div>
+
+      <hr class="border-white/10">
+      <div>
+        <h4 class="font-medium mb-2">Keyboard Shortcuts</h4>
+        <div class="text-sm text-white/50 space-y-1">
+          <div><kbd class="bg-white/10 px-2 py-0.5 rounded text-xs">Enter</kbd> — Submit / Next</div>
+          <div><kbd class="bg-white/10 px-2 py-0.5 rounded text-xs">Alt+1-7</kbd> — Insert accent characters</div>
+          <div><kbd class="bg-white/10 px-2 py-0.5 rounded text-xs">Ctrl+S</kbd> — Skip question</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Learn Tab -->
+  <div id="tab-learn" class="tab-content hidden">
+    <!-- Tense Selection -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+      <h3 class="text-lg font-bold mb-4">📖 Learn Mode — Master Spanish Conjugations</h3>
+      <p class="text-white/60 text-sm mb-4">Select a tense to learn about conjugation rules, patterns, irregularities, stem changes, and spelling adjustments.</p>
+      
+      <div class="flex flex-wrap gap-3 mb-4">
+        <button onclick="setLearnTense('subjPres')" id="learn-btn-subjPres" class="learn-tense-btn px-4 py-2 rounded-xl font-medium text-sm bg-indigo-600 text-white border-2 border-indigo-500 transition">
+          Present Subjunctive
+        </button>
+        <button onclick="setLearnTense('affCmd')" id="learn-btn-affCmd" class="learn-tense-btn px-4 py-2 rounded-xl font-medium text-sm bg-white/5 text-white/60 border-2 border-white/10 hover:border-emerald-500/50 hover:text-emerald-300 transition">
+          Affirmative Commands
+        </button>
+        <button onclick="setLearnTense('negCmd')" id="learn-btn-negCmd" class="learn-tense-btn px-4 py-2 rounded-xl font-medium text-sm bg-white/5 text-white/60 border-2 border-white/10 hover:border-rose-500/50 hover:text-rose-300 transition">
+          Negative Commands
+        </button>
+      </div>
+    </div>
+
+    <!-- Tense Overview Card -->
+    <div id="learn-tense-overview" class="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-6 mb-6">
+      <!-- Content injected by JS -->
+    </div>
+
+    <!-- Conjugation Rules Reference -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+      <h4 class="text-lg font-bold mb-4">📐 Quick Reference: Conjugation Endings</h4>
+      <div id="learn-endings-table">
+        <!-- Content injected by JS -->
+      </div>
+    </div>
+
+    <!-- Verb-by-Verb Breakdown -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h4 class="text-lg font-bold">🔍 Verb-by-Verb Breakdown</h4>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-white/50">Filter:</label>
+          <select id="learn-verb-filter" onchange="updateLearnVerbList()" class="bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-sm text-white">
+            <option value="all">All Verbs</option>
+            <option value="regular">Regular</option>
+            <option value="stem-change">Stem-Changing</option>
+            <option value="spelling-change">Spelling Changes</option>
+            <option value="irregular">Irregular</option>
+            <option value="reflexive">Reflexive</option>
+            <option value="phrase">Verb Phrases</option>
+          </select>
+        </div>
+      </div>
+      <div id="learn-verb-list" class="space-y-3">
+        <!-- Content injected by JS -->
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 border border-white/20 text-white px-6 py-3 rounded-xl shadow-2xl text-sm font-medium transition-all duration-300 opacity-0 translate-y-4 pointer-events-none z-50"></div>
+
+<script>
+// ==================== VERB DATA ====================
+const VERBS = [
+  {
+    infinitive: "aburrir", meaning: "to bore; to be boring to",
+    subjPres: { tu: "aburras", usted: "aburra", nosotros: "aburramos", vosotros: "aburráis", ustedes: "aburran", ellos: "aburran" },
+    affCmd: { tu: "aburre", usted: "aburra", nosotros: "aburramos", vosotros: "aburrid", ustedes: "aburran", ellos: "aburran" },
+    negCmd: { tu: "aburras", usted: "aburra", nosotros: "aburramos", vosotros: "aburráis", ustedes: "aburran", ellos: "aburran" }
+  },
+  {
+    infinitive: "ahogarse", meaning: "to drown; to die underwater from lack of breath",
+    subjPres: { tu: "te ahogues", usted: "se ahogue", nosotros: "nos ahoguemos", vosotros: "os ahoguéis", ustedes: "se ahoguen", ellos: "se ahoguen" },
+    affCmd: { tu: "ahógate", usted: "ahóguese", nosotros: "ahoguémonos", vosotros: "ahogaos", ustedes: "ahóguense", ellos: "ahóguense" },
+    negCmd: { tu: "te ahogues", usted: "se ahogue", nosotros: "nos ahoguemos", vosotros: "os ahoguéis", ustedes: "se ahoguen", ellos: "se ahoguen" }
+  },
+  {
+    infinitive: "amanecer", meaning: "to wake up; to dawn",
+    subjPres: { tu: "amanezcas", usted: "amanezca", nosotros: "amanezcamos", vosotros: "amanezcáis", ustedes: "amanezcan", ellos: "amanezcan" },
+    affCmd: { tu: "amanece", usted: "amanezca", nosotros: "amanezcamos", vosotros: "amaneced", ustedes: "amanezcan", ellos: "amanezcan" },
+    negCmd: { tu: "amanezcas", usted: "amanezca", nosotros: "amanezcamos", vosotros: "amanezcáis", ustedes: "amanezcan", ellos: "amanezcan" }
+  },
+  {
+    infinitive: "aminorar", meaning: "to reduce; to diminish",
+    subjPres: { tu: "aminores", usted: "aminore", nosotros: "aminoremos", vosotros: "aminoréis", ustedes: "aminoren", ellos: "aminoren" },
+    affCmd: { tu: "aminora", usted: "aminore", nosotros: "aminoremos", vosotros: "aminorad", ustedes: "aminoren", ellos: "aminoren" },
+    negCmd: { tu: "aminores", usted: "aminore", nosotros: "aminoremos", vosotros: "aminoréis", ustedes: "aminoren", ellos: "aminoren" }
+  },
+  {
+    infinitive: "aprovechar", meaning: "to take advantage of; to seize the opportunity",
+    subjPres: { tu: "aproveches", usted: "aproveche", nosotros: "aprovechemos", vosotros: "aprovechéis", ustedes: "aprovechen", ellos: "aprovechen" },
+    affCmd: { tu: "aprovecha", usted: "aproveche", nosotros: "aprovechemos", vosotros: "aprovechad", ustedes: "aprovechen", ellos: "aprovechen" },
+    negCmd: { tu: "aproveches", usted: "aproveche", nosotros: "aprovechemos", vosotros: "aprovechéis", ustedes: "aprovechen", ellos: "aprovechen" }
+  },
+  {
+    infinitive: "arreglar", meaning: "to repair; to fix",
+    subjPres: { tu: "arregles", usted: "arregle", nosotros: "arreglemos", vosotros: "arregléis", ustedes: "arreglen", ellos: "arreglen" },
+    affCmd: { tu: "arregla", usted: "arregle", nosotros: "arreglemos", vosotros: "arreglad", ustedes: "arreglen", ellos: "arreglen" },
+    negCmd: { tu: "arregles", usted: "arregle", nosotros: "arreglemos", vosotros: "arregléis", ustedes: "arreglen", ellos: "arreglen" }
+  },
+  {
+    infinitive: "caber", meaning: "to fit; to have room; there is no doubt",
+    subjPres: { tu: "quepas", usted: "quepa", nosotros: "quepamos", vosotros: "quepáis", ustedes: "quepan", ellos: "quepan" },
+    affCmd: { tu: "cabe", usted: "quepa", nosotros: "quepamos", vosotros: "cabed", ustedes: "quepan", ellos: "quepan" },
+    negCmd: { tu: "quepas", usted: "quepa", nosotros: "quepamos", vosotros: "quepáis", ustedes: "quepan", ellos: "quepan" }
+  },
+  {
+    infinitive: "caer bien", meaning: "(person) to sit well with; to like someone",
+    subjPres: { tu: "caigas bien", usted: "caiga bien", nosotros: "caigamos bien", vosotros: "caigáis bien", ustedes: "caigan bien", ellos: "caigan bien" },
+    affCmd: { tu: "cae bien", usted: "caiga bien", nosotros: "caigamos bien", vosotros: "caed bien", ustedes: "caigan bien", ellos: "caigan bien" },
+    negCmd: { tu: "caigas bien", usted: "caiga bien", nosotros: "caigamos bien", vosotros: "caigáis bien", ustedes: "caigan bien", ellos: "caigan bien" }
+  },
+  {
+    infinitive: "caer mal", meaning: "(person) to rub the wrong way; to dislike someone",
+    subjPres: { tu: "caigas mal", usted: "caiga mal", nosotros: "caigamos mal", vosotros: "caigáis mal", ustedes: "caigan mal", ellos: "caigan mal" },
+    affCmd: { tu: "cae mal", usted: "caiga mal", nosotros: "caigamos mal", vosotros: "caed mal", ustedes: "caigan mal", ellos: "caigan mal" },
+    negCmd: { tu: "caigas mal", usted: "caiga mal", nosotros: "caigamos mal", vosotros: "caigáis mal", ustedes: "caigan mal", ellos: "caigan mal" }
+  },
+  {
+    infinitive: "costar", meaning: "to cost",
+    subjPres: { tu: "cuestes", usted: "cueste", nosotros: "costemos", vosotros: "costéis", ustedes: "cuesten", ellos: "cuesten" },
+    affCmd: { tu: "cuesta", usted: "cueste", nosotros: "costemos", vosotros: "costad", ustedes: "cuesten", ellos: "cuesten" },
+    negCmd: { tu: "cuestes", usted: "cueste", nosotros: "costemos", vosotros: "costéis", ustedes: "cuesten", ellos: "cuesten" }
+  },
+  {
+    infinitive: "dar asco", meaning: "to disgust; to be yucky to",
+    subjPres: { tu: "des asco", usted: "dé asco", nosotros: "demos asco", vosotros: "deis asco", ustedes: "den asco", ellos: "den asco" },
+    affCmd: { tu: "da asco", usted: "dé asco", nosotros: "demos asco", vosotros: "dad asco", ustedes: "den asco", ellos: "den asco" },
+    negCmd: { tu: "des asco", usted: "dé asco", nosotros: "demos asco", vosotros: "deis asco", ustedes: "den asco", ellos: "den asco" }
+  },
+  {
+    infinitive: "dar igual", meaning: "to not matter; to be all the same to; to be indifferent to",
+    subjPres: { tu: "des igual", usted: "dé igual", nosotros: "demos igual", vosotros: "deis igual", ustedes: "den igual", ellos: "den igual" },
+    affCmd: { tu: "da igual", usted: "dé igual", nosotros: "demos igual", vosotros: "dad igual", ustedes: "den igual", ellos: "den igual" },
+    negCmd: { tu: "des igual", usted: "dé igual", nosotros: "demos igual", vosotros: "deis igual", ustedes: "den igual", ellos: "den igual" }
+  },
+  {
+    infinitive: "dar miedo", meaning: "to scare; to be scary to",
+    subjPres: { tu: "des miedo", usted: "dé miedo", nosotros: "demos miedo", vosotros: "deis miedo", ustedes: "den miedo", ellos: "den miedo" },
+    affCmd: { tu: "da miedo", usted: "dé miedo", nosotros: "demos miedo", vosotros: "dad miedo", ustedes: "den miedo", ellos: "den miedo" },
+    negCmd: { tu: "des miedo", usted: "dé miedo", nosotros: "demos miedo", vosotros: "deis miedo", ustedes: "den miedo", ellos: "den miedo" }
+  },
+  {
+    infinitive: "descomponerse", meaning: "to break down; to malfunction; to break again",
+    subjPres: { tu: "te descompongas", usted: "se descomponga", nosotros: "nos descompongamos", vosotros: "os descompongáis", ustedes: "se descompongan", ellos: "se descompongan" },
+    affCmd: { tu: "descomponte", usted: "descompóngase", nosotros: "descompongámonos", vosotros: "descomponeos", ustedes: "descompónganse", ellos: "descompónganse" },
+    negCmd: { tu: "te descompongas", usted: "se descomponga", nosotros: "nos descompongamos", vosotros: "os descompongáis", ustedes: "se descompongan", ellos: "se descompongan" }
+  },
+  {
+    infinitive: "despedir", meaning: "to fire; to dismiss",
+    subjPres: { tu: "despidas", usted: "despida", nosotros: "despidamos", vosotros: "despidáis", ustedes: "despidan", ellos: "despidan" },
+    affCmd: { tu: "despide", usted: "despida", nosotros: "despidamos", vosotros: "despedid", ustedes: "despidan", ellos: "despidan" },
+    negCmd: { tu: "despidas", usted: "despida", nosotros: "despidamos", vosotros: "despidáis", ustedes: "despidan", ellos: "despidan" }
+  },
+  {
+    infinitive: "diluirse", meaning: "to dissolve; to fade away",
+    subjPres: { tu: "te diluyas", usted: "se diluya", nosotros: "nos diluyamos", vosotros: "os diluyáis", ustedes: "se diluyan", ellos: "se diluyan" },
+    affCmd: { tu: "dilúyete", usted: "dilúyase", nosotros: "diluyámonos", vosotros: "diluíos", ustedes: "dilúyanse", ellos: "dilúyanse" },
+    negCmd: { tu: "te diluyas", usted: "se diluya", nosotros: "nos diluyamos", vosotros: "os diluyáis", ustedes: "se diluyan", ellos: "se diluyan" }
+  },
+  {
+    infinitive: "disgustar", meaning: "to disgust; to annoy; to upset; to irritate; to bother",
+    subjPres: { tu: "disgustes", usted: "disguste", nosotros: "disgustemos", vosotros: "disgustéis", ustedes: "disgusten", ellos: "disgusten" },
+    affCmd: { tu: "disgusta", usted: "disguste", nosotros: "disgustemos", vosotros: "disgustad", ustedes: "disgusten", ellos: "disgusten" },
+    negCmd: { tu: "disgustes", usted: "disguste", nosotros: "disgustemos", vosotros: "disgustéis", ustedes: "disgusten", ellos: "disgusten" }
+  },
+  {
+    infinitive: "doler", meaning: "to hurt",
+    subjPres: { tu: "duelas", usted: "duela", nosotros: "dolamos", vosotros: "doláis", ustedes: "duelan", ellos: "duelan" },
+    affCmd: { tu: "duele", usted: "duela", nosotros: "dolamos", vosotros: "doled", ustedes: "duelan", ellos: "duelan" },
+    negCmd: { tu: "duelas", usted: "duela", nosotros: "dolamos", vosotros: "doláis", ustedes: "duelan", ellos: "duelan" }
+  },
+  {
+    infinitive: "embarrar", meaning: "to smear; to spread on",
+    subjPres: { tu: "embarres", usted: "embarre", nosotros: "embarremos", vosotros: "embarréis", ustedes: "embarren", ellos: "embarren" },
+    affCmd: { tu: "embarra", usted: "embarre", nosotros: "embarremos", vosotros: "embarrad", ustedes: "embarren", ellos: "embarren" },
+    negCmd: { tu: "embarres", usted: "embarre", nosotros: "embarremos", vosotros: "embarréis", ustedes: "embarren", ellos: "embarren" }
+  },
+  {
+    infinitive: "encantar", meaning: "(objects or actions, not people) to love; to enchant",
+    subjPres: { tu: "encantes", usted: "encante", nosotros: "encantemos", vosotros: "encantéis", ustedes: "encanten", ellos: "encanten" },
+    affCmd: { tu: "encanta", usted: "encante", nosotros: "encantemos", vosotros: "encantad", ustedes: "encanten", ellos: "encanten" },
+    negCmd: { tu: "encantes", usted: "encante", nosotros: "encantemos", vosotros: "encantéis", ustedes: "encanten", ellos: "encanten" }
+  },
+  {
+    infinitive: "endurecerse", meaning: "to harden; to solidify",
+    subjPres: { tu: "te endurezcas", usted: "se endurezca", nosotros: "nos endurezcamos", vosotros: "os endurezcáis", ustedes: "se endurezcan", ellos: "se endurezcan" },
+    affCmd: { tu: "endurécete", usted: "endurézcase", nosotros: "endurezcámonos", vosotros: "endureceos", ustedes: "endurézanse", ellos: "endurézanse" },
+    negCmd: { tu: "te endurezcas", usted: "se endurezca", nosotros: "nos endurezcamos", vosotros: "os endurezcáis", ustedes: "se endurezcan", ellos: "se endurezcan" }
+  },
+  {
+    infinitive: "enervar", meaning: "to weaken; to make nervous",
+    subjPres: { tu: "enerves", usted: "enerve", nosotros: "enervemos", vosotros: "enervéis", ustedes: "enerven", ellos: "enerven" },
+    affCmd: { tu: "enerva", usted: "enerve", nosotros: "enervemos", vosotros: "enervad", ustedes: "enerven", ellos: "enerven" },
+    negCmd: { tu: "enerves", usted: "enerve", nosotros: "enervemos", vosotros: "enervéis", ustedes: "enerven", ellos: "enerven" }
+  },
+  {
+    infinitive: "enfadar", meaning: "to anger; to make angry",
+    subjPres: { tu: "enfades", usted: "enfade", nosotros: "enfademos", vosotros: "enfadéis", ustedes: "enfaden", ellos: "enfaden" },
+    affCmd: { tu: "enfada", usted: "enfade", nosotros: "enfademos", vosotros: "enfadad", ustedes: "enfaden", ellos: "enfaden" },
+    negCmd: { tu: "enfades", usted: "enfade", nosotros: "enfademos", vosotros: "enfadéis", ustedes: "enfaden", ellos: "enfaden" }
+  },
+  {
+    infinitive: "enojar", meaning: "to anger; to make angry",
+    subjPres: { tu: "enojes", usted: "enoje", nosotros: "enojemos", vosotros: "enojéis", ustedes: "enojen", ellos: "enojen" },
+    affCmd: { tu: "enoja", usted: "enoje", nosotros: "enojemos", vosotros: "enojad", ustedes: "enojen", ellos: "enojen" },
+    negCmd: { tu: "enojes", usted: "enoje", nosotros: "enojemos", vosotros: "enojéis", ustedes: "enojen", ellos: "enojen" }
+  },
+  {
+    infinitive: "erguirse", meaning: "to stand upright; to rise",
+    subjPres: { tu: "te yergas", usted: "se yerga", nosotros: "nos irgamos", vosotros: "os irgáis", ustedes: "se yergan", ellos: "se yergan" },
+    affCmd: { tu: "yérguete", usted: "yérgase", nosotros: "irgámonos", vosotros: "erguíos", ustedes: "yérganse", ellos: "yérganse" },
+    negCmd: { tu: "te yergas", usted: "se yerga", nosotros: "nos irgamos", vosotros: "os irgáis", ustedes: "se yergan", ellos: "se yergan" }
+  },
+  {
+    infinitive: "faltar", meaning: "to lack; to miss; to be lacking; to be missing",
+    subjPres: { tu: "faltes", usted: "falte", nosotros: "faltemos", vosotros: "faltéis", ustedes: "falten", ellos: "falten" },
+    affCmd: { tu: "falta", usted: "falte", nosotros: "faltemos", vosotros: "faltad", ustedes: "falten", ellos: "falten" },
+    negCmd: { tu: "faltes", usted: "falte", nosotros: "faltemos", vosotros: "faltéis", ustedes: "falten", ellos: "falten" }
+  },
+  {
+    infinitive: "fascinar", meaning: "to fascinate; to be fascinating to",
+    subjPres: { tu: "fascines", usted: "fascine", nosotros: "fascinemos", vosotros: "fascinéis", ustedes: "fascinen", ellos: "fascinen" },
+    affCmd: { tu: "fascina", usted: "fascine", nosotros: "fascinemos", vosotros: "fascinad", ustedes: "fascinen", ellos: "fascinen" },
+    negCmd: { tu: "fascines", usted: "fascine", nosotros: "fascinemos", vosotros: "fascinéis", ustedes: "fascinen", ellos: "fascinen" }
+  },
+  {
+    infinitive: "gustar", meaning: "(objects or actions, not people) to like; to please; to be pleasing to",
+    subjPres: { tu: "gustes", usted: "guste", nosotros: "gustemos", vosotros: "gustéis", ustedes: "gusten", ellos: "gusten" },
+    affCmd: { tu: "gusta", usted: "guste", nosotros: "gustemos", vosotros: "gustad", ustedes: "gusten", ellos: "gusten" },
+    negCmd: { tu: "gustes", usted: "guste", nosotros: "gustemos", vosotros: "gustéis", ustedes: "gusten", ellos: "gusten" }
+  },
+  {
+    infinitive: "importar", meaning: "to matter; to be important to",
+    subjPres: { tu: "importes", usted: "importe", nosotros: "importemos", vosotros: "importéis", ustedes: "importen", ellos: "importen" },
+    affCmd: { tu: "importa", usted: "importe", nosotros: "importemos", vosotros: "importad", ustedes: "importen", ellos: "importen" },
+    negCmd: { tu: "importes", usted: "importe", nosotros: "importemos", vosotros: "importéis", ustedes: "importen", ellos: "importen" }
+  },
+  {
+    infinitive: "inundar", meaning: "to flood; to inundate",
+    subjPres: { tu: "inundes", usted: "inunde", nosotros: "inundemos", vosotros: "inundéis", ustedes: "inunden", ellos: "inunden" },
+    affCmd: { tu: "inunda", usted: "inunde", nosotros: "inundemos", vosotros: "inundad", ustedes: "inunden", ellos: "inunden" },
+    negCmd: { tu: "inundes", usted: "inunde", nosotros: "inundemos", vosotros: "inundéis", ustedes: "inunden", ellos: "inunden" }
+  },
+  {
+    infinitive: "interesar", meaning: "to interest; to be interesting to",
+    subjPres: { tu: "intereses", usted: "interese", nosotros: "interesemos", vosotros: "intereséis", ustedes: "interesen", ellos: "interesen" },
+    affCmd: { tu: "interesa", usted: "interese", nosotros: "interesemos", vosotros: "interesad", ustedes: "interesen", ellos: "interesen" },
+    negCmd: { tu: "intereses", usted: "interese", nosotros: "interesemos", vosotros: "intereséis", ustedes: "interesen", ellos: "interesen" }
+  },
+  {
+    infinitive: "molestar", meaning: "to annoy; to upset; to irritate; to bother; to pester",
+    subjPres: { tu: "molestes", usted: "moleste", nosotros: "molestemos", vosotros: "molestéis", ustedes: "molesten", ellos: "molesten" },
+    affCmd: { tu: "molesta", usted: "moleste", nosotros: "molestemos", vosotros: "molestad", ustedes: "molesten", ellos: "molesten" },
+    negCmd: { tu: "molestes", usted: "moleste", nosotros: "molestemos", vosotros: "molestéis", ustedes: "molesten", ellos: "molesten" }
+  },
+  {
+    infinitive: "morder", meaning: "to bite",
+    subjPres: { tu: "muerdas", usted: "muerda", nosotros: "mordamos", vosotros: "mordáis", ustedes: "muerdan", ellos: "muerdan" },
+    affCmd: { tu: "muerde", usted: "muerda", nosotros: "mordamos", vosotros: "morded", ustedes: "muerdan", ellos: "muerdan" },
+    negCmd: { tu: "muerdas", usted: "muerda", nosotros: "mordamos", vosotros: "mordáis", ustedes: "muerdan", ellos: "muerdan" }
+  },
+  {
+    infinitive: "padecer", meaning: "to suffer",
+    subjPres: { tu: "padezcas", usted: "padezca", nosotros: "padezcamos", vosotros: "padezcáis", ustedes: "padezcan", ellos: "padezcan" },
+    affCmd: { tu: "padece", usted: "padezca", nosotros: "padezcamos", vosotros: "padeced", ustedes: "padezcan", ellos: "padezcan" },
+    negCmd: { tu: "padezcas", usted: "padezca", nosotros: "padezcamos", vosotros: "padezcáis", ustedes: "padezcan", ellos: "padezcan" }
+  },
+  {
+    infinitive: "palpar", meaning: "to feel; to touch",
+    subjPres: { tu: "palpes", usted: "palpe", nosotros: "palpemos", vosotros: "palpéis", ustedes: "palpen", ellos: "palpen" },
+    affCmd: { tu: "palpa", usted: "palpe", nosotros: "palpemos", vosotros: "palpad", ustedes: "palpen", ellos: "palpen" },
+    negCmd: { tu: "palpes", usted: "palpe", nosotros: "palpemos", vosotros: "palpéis", ustedes: "palpen", ellos: "palpen" }
+  },
+  {
+    infinitive: "parecer", meaning: "to seem",
+    subjPres: { tu: "parezcas", usted: "parezca", nosotros: "parezcamos", vosotros: "parezcáis", ustedes: "parezcan", ellos: "parezcan" },
+    affCmd: { tu: "parece", usted: "parezca", nosotros: "parezcamos", vosotros: "pareced", ustedes: "parezcan", ellos: "parezcan" },
+    negCmd: { tu: "parezcas", usted: "parezca", nosotros: "parezcamos", vosotros: "parezcáis", ustedes: "parezcan", ellos: "parezcan" }
+  },
+  {
+    infinitive: "percatarse", meaning: "to realize; to become aware of",
+    subjPres: { tu: "te percates", usted: "se percate", nosotros: "nos percatemos", vosotros: "os percatéis", ustedes: "se percaten", ellos: "se percaten" },
+    affCmd: { tu: "percátate", usted: "percátese", nosotros: "percatémonos", vosotros: "percataos", ustedes: "percátense", ellos: "percátense" },
+    negCmd: { tu: "te percates", usted: "se percate", nosotros: "nos percatemos", vosotros: "os percatéis", ustedes: "se percaten", ellos: "se percaten" }
+  },
+  {
+    infinitive: "pretender", meaning: "to try; to attempt",
+    subjPres: { tu: "pretendas", usted: "pretenda", nosotros: "pretendamos", vosotros: "pretendáis", ustedes: "pretendan", ellos: "pretendan" },
+    affCmd: { tu: "pretende", usted: "pretenda", nosotros: "pretendamos", vosotros: "pretended", ustedes: "pretendan", ellos: "pretendan" },
+    negCmd: { tu: "pretendas", usted: "pretenda", nosotros: "pretendamos", vosotros: "pretendáis", ustedes: "pretendan", ellos: "pretendan" }
+  },
+  {
+    infinitive: "quedar (remain)", meaning: "to remain; to be left over",
+    subjPres: { tu: "quedes", usted: "quede", nosotros: "quedemos", vosotros: "quedéis", ustedes: "queden", ellos: "queden" },
+    affCmd: { tu: "queda", usted: "quede", nosotros: "quedemos", vosotros: "quedad", ustedes: "queden", ellos: "queden" },
+    negCmd: { tu: "quedes", usted: "quede", nosotros: "quedemos", vosotros: "quedéis", ustedes: "queden", ellos: "queden" }
+  },
+  {
+    infinitive: "quedar (located)", meaning: "to be located",
+    subjPres: { tu: "quedes", usted: "quede", nosotros: "quedemos", vosotros: "quedéis", ustedes: "queden", ellos: "queden" },
+    affCmd: { tu: "queda", usted: "quede", nosotros: "quedemos", vosotros: "quedad", ustedes: "queden", ellos: "queden" },
+    negCmd: { tu: "quedes", usted: "quede", nosotros: "quedemos", vosotros: "quedéis", ustedes: "queden", ellos: "queden" }
+  },
+  {
+    infinitive: "raspar", meaning: "to scrape; to scrape off",
+    subjPres: { tu: "raspes", usted: "raspe", nosotros: "raspemos", vosotros: "raspéis", ustedes: "raspen", ellos: "raspen" },
+    affCmd: { tu: "raspa", usted: "raspe", nosotros: "raspemos", vosotros: "raspad", ustedes: "raspen", ellos: "raspen" },
+    negCmd: { tu: "raspes", usted: "raspe", nosotros: "raspemos", vosotros: "raspéis", ustedes: "raspen", ellos: "raspen" }
+  },
+  {
+    infinitive: "reblandecerse", meaning: "to soften; to become soft and flexible",
+    subjPres: { tu: "te reblandezcas", usted: "se reblandezca", nosotros: "nos reblandezcamos", vosotros: "os reblandezcáis", ustedes: "se reblandezcan", ellos: "se reblandezcan" },
+    affCmd: { tu: "reblandécete", usted: "reblandézcase", nosotros: "reblandezcámonos", vosotros: "reblandeceos", ustedes: "reblandézcanse", ellos: "reblandézcanse" },
+    negCmd: { tu: "te reblandezcas", usted: "se reblandezca", nosotros: "nos reblandezcamos", vosotros: "os reblandezcáis", ustedes: "se reblandezcan", ellos: "se reblandezcan" }
+  },
+  {
+    infinitive: "recostarse", meaning: "to lie down; to recline",
+    subjPres: { tu: "te recuestes", usted: "se recueste", nosotros: "nos recostemos", vosotros: "os recostéis", ustedes: "se recuesten", ellos: "se recuesten" },
+    affCmd: { tu: "recuéstate", usted: "recuéstese", nosotros: "recostémonos", vosotros: "recostaos", ustedes: "recuéstense", ellos: "recuéstense" },
+    negCmd: { tu: "te recuestes", usted: "se recueste", nosotros: "nos recostemos", vosotros: "os recostéis", ustedes: "se recuesten", ellos: "se recuesten" }
+  },
+  {
+    infinitive: "repasar", meaning: "to go over; to review; to touch again",
+    subjPres: { tu: "repases", usted: "repase", nosotros: "repasemos", vosotros: "repaséis", ustedes: "repasen", ellos: "repasen" },
+    affCmd: { tu: "repasa", usted: "repase", nosotros: "repasemos", vosotros: "repasad", ustedes: "repasen", ellos: "repasen" },
+    negCmd: { tu: "repases", usted: "repase", nosotros: "repasemos", vosotros: "repaséis", ustedes: "repasen", ellos: "repasen" }
+  },
+  {
+    infinitive: "revelar", meaning: "to reveal",
+    subjPres: { tu: "reveles", usted: "revele", nosotros: "revelemos", vosotros: "reveléis", ustedes: "revelen", ellos: "revelen" },
+    affCmd: { tu: "revela", usted: "revele", nosotros: "revelemos", vosotros: "revelad", ustedes: "revelen", ellos: "revelen" },
+    negCmd: { tu: "reveles", usted: "revele", nosotros: "revelemos", vosotros: "reveléis", ustedes: "revelen", ellos: "revelen" }
+  },
+  {
+    infinitive: "sufrir", meaning: "to suffer",
+    subjPres: { tu: "sufras", usted: "sufra", nosotros: "suframos", vosotros: "sufráis", ustedes: "sufran", ellos: "sufran" },
+    affCmd: { tu: "sufre", usted: "sufra", nosotros: "suframos", vosotros: "sufrid", ustedes: "sufran", ellos: "sufran" },
+    negCmd: { tu: "sufras", usted: "sufra", nosotros: "suframos", vosotros: "sufráis", ustedes: "sufran", ellos: "sufran" }
+  },
+  {
+    infinitive: "temblar", meaning: "to tremble; to shake",
+    subjPres: { tu: "tiembles", usted: "tiemble", nosotros: "temblemos", vosotros: "tembléis", ustedes: "tiemblen", ellos: "tiemblen" },
+    affCmd: { tu: "tiembla", usted: "tiemble", nosotros: "temblemos", vosotros: "temblad", ustedes: "tiemblen", ellos: "tiemblen" },
+    negCmd: { tu: "tiembles", usted: "tiemble", nosotros: "temblemos", vosotros: "tembléis", ustedes: "tiemblen", ellos: "tiemblen" }
+  },
+  {
+    infinitive: "tergiversar", meaning: "to distort; to misrepresent; to get confused",
+    subjPres: { tu: "tergiverses", usted: "tergiverse", nosotros: "tergiversemos", vosotros: "tergiverséis", ustedes: "tergiversen", ellos: "tergiversen" },
+    affCmd: { tu: "tergiversa", usted: "tergiverse", nosotros: "tergiversemos", vosotros: "tergiversad", ustedes: "tergiversen", ellos: "tergiversen" },
+    negCmd: { tu: "tergiverses", usted: "tergiverse", nosotros: "tergiversemos", vosotros: "tergiverséis", ustedes: "tergiversen", ellos: "tergiversen" }
+  },
+  {
+    infinitive: "timar", meaning: "to cheat; to swindle",
+    subjPres: { tu: "times", usted: "time", nosotros: "timemos", vosotros: "timéis", ustedes: "timen", ellos: "timen" },
+    affCmd: { tu: "tima", usted: "time", nosotros: "timemos", vosotros: "timad", ustedes: "timen", ellos: "timen" },
+    negCmd: { tu: "times", usted: "time", nosotros: "timemos", vosotros: "timéis", ustedes: "timen", ellos: "timen" }
+  },
+  {
+    infinitive: "trasladar", meaning: "to transfer; to move something from one place to another",
+    subjPres: { tu: "traslades", usted: "traslade", nosotros: "traslademos", vosotros: "trasladéis", ustedes: "trasladen", ellos: "trasladen" },
+    affCmd: { tu: "traslada", usted: "traslade", nosotros: "traslademos", vosotros: "trasladad", ustedes: "trasladen", ellos: "trasladen" },
+    negCmd: { tu: "traslades", usted: "traslade", nosotros: "traslademos", vosotros: "trasladéis", ustedes: "trasladen", ellos: "trasladen" }
+  }
+];
+
+const PERSONS = ["tú", "usted", "nosotros", "vosotros", "ustedes", "ellos"];
+const PERSON_KEYS = ["tu", "usted", "nosotros", "vosotros", "ustedes", "ellos"];
+const TENSES = ["subjPres", "affCmd", "negCmd"];
+const TENSE_NAMES = {
+  subjPres: "Present Subjunctive",
+  affCmd: "Affirmative Command",
+  negCmd: "Negative Command"
+};
+const TENSE_COLORS = {
+  subjPres: { bg: "bg-indigo-500/20", text: "text-indigo-300", border: "border-indigo-500/30" },
+  affCmd: { bg: "bg-emerald-500/20", text: "text-emerald-300", border: "border-emerald-500/30" },
+  negCmd: { bg: "bg-rose-500/20", text: "text-rose-300", border: "border-rose-500/30" }
+};
+
+// ==================== VERB TYPE METADATA ====================
+const VERB_TYPES = {
+  "aburrir": { type: "regular", ending: "-ir", notes: "Regular -ir verb. Uses standard subjunctive endings." },
+  "ahogarse": { type: "reflexive", ending: "-ar", spelling: "g→gu", notes: "Reflexive -ar verb with g→gu spelling change before 'e' to preserve the hard 'g' sound." },
+  "amanecer": { type: "spelling-change", ending: "-er", spelling: "c→zc", notes: "Verbs ending in -cer add 'z' before 'c' in yo form, which carries to all subjunctive forms." },
+  "aminorar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "aprovechar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "arreglar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "caber": { type: "irregular", ending: "-er", irregular: "yo quepo", notes: "Highly irregular. Yo form 'quepo' → subjunctive stem 'quep-'. One of the most irregular verbs in Spanish." },
+  "caer bien": { type: "phrase", ending: "-er", irregular: "yo caigo", notes: "Verb phrase using 'caer'. Yo form 'caigo' → subjunctive stem 'caig-'." },
+  "caer mal": { type: "phrase", ending: "-er", irregular: "yo caigo", notes: "Verb phrase using 'caer'. Yo form 'caigo' → subjunctive stem 'caig-'." },
+  "costar": { type: "stem-change", ending: "-ar", stemChange: "o→ue", notes: "Stem-changing verb (o→ue). Change occurs in all forms EXCEPT nosotros/vosotros." },
+  "dar asco": { type: "phrase", ending: "-ar", irregular: "dar", notes: "Verb phrase using 'dar'. Dar is irregular: dé, des, dé, demos, deis, den. Note accent on 'dé'." },
+  "dar igual": { type: "phrase", ending: "-ar", irregular: "dar", notes: "Verb phrase using 'dar'. Dar is irregular: dé, des, dé, demos, deis, den." },
+  "dar miedo": { type: "phrase", ending: "-ar", irregular: "dar", notes: "Verb phrase using 'dar'. Dar is irregular: dé, des, dé, demos, deis, den." },
+  "descomponerse": { type: "irregular", ending: "-er", irregular: "yo descompongo", reflexive: true, notes: "Based on 'poner'. Yo form 'descompongo' → subjunctive stem 'descompong-'. Reflexive pronouns attach." },
+  "despedir": { type: "stem-change", ending: "-ir", stemChange: "e→i", notes: "Stem-changing -ir verb (e→i). Change occurs in ALL subjunctive forms including nosotros/vosotros." },
+  "diluirse": { type: "reflexive", ending: "-ir", spelling: "i→y", notes: "Reflexive -uir verb. Adds 'y' between stem and ending when unstressed 'i' would fall between vowels." },
+  "disgustar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "doler": { type: "stem-change", ending: "-er", stemChange: "o→ue", notes: "Stem-changing verb (o→ue). Change occurs in all forms EXCEPT nosotros/vosotros." },
+  "embarrar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "encantar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings. Often used with indirect object pronouns." },
+  "endurecerse": { type: "spelling-change", ending: "-er", spelling: "c→zc", reflexive: true, notes: "Verbs ending in -cer add 'z' before 'c'. Reflexive pronouns attach to commands." },
+  "enervar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "enfadar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "enojar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "erguirse": { type: "irregular", ending: "-ir", irregular: "yo yergo/irgo", reflexive: true, stemChange: "e→ie/i", notes: "Highly irregular verb with two accepted forms (yergo or irgo). Complex stem changes throughout." },
+  "faltar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "fascinar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "gustar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings. Typically used with indirect object pronouns." },
+  "importar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "inundar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "interesar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "molestar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "morder": { type: "stem-change", ending: "-er", stemChange: "o→ue", notes: "Stem-changing verb (o→ue). Change occurs in all forms EXCEPT nosotros/vosotros." },
+  "padecer": { type: "spelling-change", ending: "-er", spelling: "c→zc", notes: "Verbs ending in -cer add 'z' before 'c' in yo form, which carries to all subjunctive forms." },
+  "palpar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "parecer": { type: "spelling-change", ending: "-er", spelling: "c→zc", notes: "Verbs ending in -cer add 'z' before 'c' in yo form, which carries to all subjunctive forms." },
+  "percatarse": { type: "reflexive", ending: "-ar", notes: "Regular reflexive -ar verb. Reflexive pronouns precede in subjunctive, attach in affirmative commands." },
+  "pretender": { type: "regular", ending: "-er", notes: "Regular -er verb. Uses standard subjunctive endings." },
+  "quedar (remain)": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "quedar (located)": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "raspar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "reblandecerse": { type: "spelling-change", ending: "-er", spelling: "c→zc", reflexive: true, notes: "Verbs ending in -cer add 'z' before 'c'. Reflexive pronouns attach to commands." },
+  "recostarse": { type: "stem-change", ending: "-ar", stemChange: "o→ue", reflexive: true, notes: "Stem-changing reflexive verb (o→ue). Change in all forms except nosotros/vosotros." },
+  "repasar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "revelar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "sufrir": { type: "regular", ending: "-ir", notes: "Regular -ir verb. Uses standard subjunctive endings." },
+  "temblar": { type: "stem-change", ending: "-ar", stemChange: "e→ie", notes: "Stem-changing verb (e→ie). Change occurs in all forms EXCEPT nosotros/vosotros." },
+  "tergiversar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "timar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." },
+  "trasladar": { type: "regular", ending: "-ar", notes: "Regular -ar verb. Uses standard subjunctive endings." }
+};
+
+// ==================== LEARN MODE STATE ====================
+let currentLearnTense = 'subjPres';
+
+// ==================== QUESTION QUEUE ====================
+let questionQueue = [];
+let totalCombinations = 0;
+
+// ==================== STATE ====================
+let state = {
+  currentStreak: 0,
+  bestStreak: 0,
+  sessionCorrect: 0,
+  sessionTotal: 0,
+  totalCorrect: 0,
+  totalAttempts: 0,
+  history: [], // {verb, person, tense, userAnswer, correctAnswer, correct, timestamp}
+  verbStats: {}, // { verbInfinitive: { attempts, correct } }
+  tenseStats: {}, // { tense: { attempts, correct } }
+  comboStats: {}, // { "verb|person|tense": { attempts, correct } }
+  mastery: {}, // { "verb|person|tense": true } - tracks mastered combinations
+  settings: {
+    sessionSize: 20,
+    strictAccents: true,
+    showMeaning: true,
+    weighted: true,
+    sound: true,
+    confetti: true
+  }
+};
+
+let currentQuestion = null;
+let answered = false;
+let sortField = 'verb';
+let sortDir = 1;
+
+// ==================== COOKIE STORAGE ====================
+function saveToCookie() {
+  const data = JSON.stringify(state);
+  // Use localStorage as primary, cookies as backup
+  try {
+    localStorage.setItem('conjugador_data', data);
+  } catch(e) {}
+  // Also save to cookie (chunked if needed, but we'll keep it simple)
+  try {
+    document.cookie = `conjugador_v2=${encodeURIComponent(data)};max-age=${60*60*24*365*2};path=/;SameSite=Lax`;
+  } catch(e) {}
+}
+
+function loadFromStorage() {
+  let data = null;
+  // Try localStorage first
+  try {
+    const ls = localStorage.getItem('conjugador_data');
+    if (ls) data = JSON.parse(ls);
+  } catch(e) {}
+  // Fallback to cookie
+  if (!data) {
+    try {
+      const cookies = document.cookie.split(';');
+      for (const c of cookies) {
+        const [key, val] = c.trim().split('=');
+        if (key === 'conjugador_v2' && val) {
+          data = JSON.parse(decodeURIComponent(val));
+          break;
+        }
+      }
+    } catch(e) {}
+  }
+  if (data) {
+    state = { ...state, ...data };
+    if (data.settings) state.settings = { ...state.settings, ...data.settings };
+    if (!state.verbStats) state.verbStats = {};
+    if (!state.tenseStats) state.tenseStats = {};
+    if (!state.comboStats) state.comboStats = {};
+    if (!state.history) state.history = [];
+    if (!state.mastery) state.mastery = {};
+  }
+}
+
+// ==================== QUEUE GENERATION & SHUFFLING ====================
+function generateAllCombinations() {
+  const combinations = [];
+  VERBS.forEach(verb => {
+    TENSES.forEach(tense => {
+      PERSON_KEYS.forEach((personKey, idx) => {
+        combinations.push({
+          verbInfinitive: verb.infinitive,
+          tense: tense,
+          personKey: personKey,
+          personDisplay: PERSONS[idx]
+        });
+      });
+    });
+  });
+  totalCombinations = combinations.length;
+  return combinations;
+}
+
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function initializeQueue() {
+  // Generate all combinations, prioritizing unmastered ones
+  const allCombos = generateAllCombinations();
+  
+  // Separate into mastered and unmastered
+  const unmastered = allCombos.filter(c => !state.mastery[`${c.verbInfinitive}|${c.personKey}|${c.tense}`]);
+  const mastered = allCombos.filter(c => state.mastery[`${c.verbInfinitive}|${c.personKey}|${c.tense}`]);
+  
+  // Shuffle unmastered first, then add shuffled mastered at the end
+  questionQueue = [...shuffleArray(unmastered), ...shuffleArray(mastered)];
+  
+  updateMasteryDisplay();
+}
+
+function reshuffleQueue() {
+  initializeQueue();
+  showToast('Queue reshuffled! Unmastered combinations prioritized.');
+}
+
+function getNextFromQueue() {
+  // If queue is empty, regenerate it
+  if (questionQueue.length === 0) {
+    initializeQueue();
+  }
+  
+  // Get next item from queue
+  const combo = questionQueue.shift();
+  
+  // Find the actual verb object
+  const verb = VERBS.find(v => v.infinitive === combo.verbInfinitive);
+  const correctAnswer = verb[combo.tense][combo.personKey];
+  
+  return {
+    verb: verb,
+    tense: combo.tense,
+    person: { display: combo.personDisplay, key: combo.personKey },
+    correctAnswer: correctAnswer
+  };
+}
+
+function getMasteryStats() {
+  const stats = {
+    total: 0,
+    subjPres: 0,
+    affCmd: 0,
+    negCmd: 0
+  };
+  
+  Object.keys(state.mastery).forEach(key => {
+    if (state.mastery[key]) {
+      stats.total++;
+      const tense = key.split('|')[2];
+      if (tense === 'subjPres') stats.subjPres++;
+      else if (tense === 'affCmd') stats.affCmd++;
+      else if (tense === 'negCmd') stats.negCmd++;
+    }
+  });
+  
+  return stats;
+}
+
+function updateMasteryDisplay() {
+  const stats = getMasteryStats();
+  const total = totalCombinations || (VERBS.length * TENSES.length * PERSONS.length);
+  const perTense = VERBS.length * PERSONS.length; // 300 per tense
+  
+  // Update main counter and progress bar
+  document.getElementById('mastery-count').textContent = `${stats.total} / ${total}`;
+  document.getElementById('mastery-percentage').textContent = `${Math.round(stats.total / total * 100)}%`;
+  document.getElementById('mastery-progress-bar').style.width = `${(stats.total / total * 100)}%`;
+  
+  // Update tense breakdowns
+  document.getElementById('mastery-subj-count').textContent = stats.subjPres;
+  document.getElementById('mastery-subj-bar').style.width = `${(stats.subjPres / perTense * 100)}%`;
+  
+  document.getElementById('mastery-aff-count').textContent = stats.affCmd;
+  document.getElementById('mastery-aff-bar').style.width = `${(stats.affCmd / perTense * 100)}%`;
+  
+  document.getElementById('mastery-neg-count').textContent = stats.negCmd;
+  document.getElementById('mastery-neg-bar').style.width = `${(stats.negCmd / perTense * 100)}%`;
+  
+  // Update queue remaining
+  const unmasteredCount = total - stats.total;
+  document.getElementById('queue-remaining').textContent = `${questionQueue.length} in queue (${unmasteredCount} unmastered)`;
+  
+  // Check for completion celebration
+  if (stats.total === total && total > 0) {
+    celebrateMastery();
+  }
+}
+
+function celebrateMastery() {
+  showToast('🎉 AMAZING! You\'ve mastered ALL combinations! 🏆');
+  if (state.settings.confetti) {
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => launchConfetti(), i * 500);
+    }
+  }
+}
+
+// ==================== QUESTION GENERATION ====================
+function generateQuestion() {
+  return getNextFromQueue();
+}
+
+function displayQuestion() {
+  answered = false;
+  currentQuestion = generateQuestion();
+  const q = currentQuestion;
+
+  // Tense badge
+  const badge = document.getElementById('tense-badge');
+  const tc = TENSE_COLORS[q.tense];
+  badge.className = `px-3 py-1 rounded-full text-xs font-semibold ${tc.bg} ${tc.text} border ${tc.border}`;
+  badge.textContent = TENSE_NAMES[q.tense];
+
+  // Verb
+  document.getElementById('verb-display').textContent = q.verb.infinitive;
+  const meaningEl = document.getElementById('verb-meaning');
+  meaningEl.textContent = q.verb.meaning;
+  meaningEl.style.display = state.settings.showMeaning ? '' : 'none';
+
+  // Person
+  document.getElementById('person-display').textContent = q.person.display;
+
+  // For negative commands, show hint
+  if (q.tense === 'negCmd') {
+    document.getElementById('person-display').innerHTML = `<span class="text-rose-400">no</span> ${q.person.display}`;
+  }
+
+  // Reset input
+  const input = document.getElementById('answer-input');
+  input.value = '';
+  input.disabled = false;
+  input.className = 'w-full bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 text-center text-xl font-medium text-white placeholder-white/30 focus:border-indigo-400 transition';
+  input.focus();
+
+  // Reset buttons
+  document.getElementById('submit-btn').classList.remove('hidden');
+  document.getElementById('next-btn').classList.add('hidden');
+
+  // Reset feedback
+  document.getElementById('feedback-area').classList.add('hidden');
+  document.getElementById('input-icon').style.opacity = '0';
+
+  // Animate card
+  const card = document.getElementById('question-card');
+  card.classList.remove('fade-in');
+  void card.offsetWidth;
+  card.classList.add('fade-in');
+}
+
+// ==================== ANSWER CHECKING ====================
+function normalizeAnswer(str) {
+  return str.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function stripAccents(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ñ/gi, 'n');
+}
+
+// ==================== ENHANCED MULTI-ISSUE MISTAKE DETECTION ====================
+function analyzeAllMistakes(userAnswer, correctAnswer, question) {
+  const user = userAnswer.toLowerCase().trim();
+  const correct = correctAnswer.toLowerCase().trim();
+  const verb = question.verb;
+  const tense = question.tense;
+  const person = question.person.key;
+  const meta = VERB_TYPES[verb.infinitive] || { type: 'regular' };
+  const isReflexive = verb.infinitive.endsWith('se') || meta.reflexive;
+  
+  const issues = [];
+  
+  // If empty answer
+  if (!user || user.length === 0) {
+    return [{
+      type: 'empty',
+      icon: '📝',
+      severity: 'critical',
+      title: 'No answer provided',
+      explanation: 'You need to type the conjugated form of the verb.',
+      tip: 'Try breaking it down: identify the stem, then add the correct ending for the tense and person.',
+      details: `Expected: <span class="font-mono text-emerald-300">${correct}</span>`
+    }];
+  }
+
+  // === STRUCTURAL CHECKS ===
+  
+  // Check for "no" prefix in negative commands
+  if (tense === 'negCmd') {
+    if (!user.startsWith('no ') && correct.startsWith('no ')) {
+      issues.push({
+        type: 'missing-no',
+        icon: '🚫',
+        severity: 'critical',
+        title: 'Missing "no" for negative command',
+        explanation: 'Negative commands MUST start with "no" followed by a space, then the subjunctive form.',
+        tip: 'Structure: <span class="text-rose-300 font-mono">no</span> + subjunctive form',
+        details: `You wrote "${user}" but needed "no ${user.startsWith('no') ? user.slice(2).trim() : user}" format`
+      });
+    }
+  } else if (tense !== 'negCmd' && user.startsWith('no ')) {
+    issues.push({
+      type: 'extra-no',
+      icon: '❌',
+      severity: 'major',
+      title: 'Unnecessary "no" prefix',
+      explanation: `${TENSE_NAMES[tense]} does not use "no" in front of the verb.`,
+      tip: 'Only negative commands use the "no" + verb structure.'
+    });
+  }
+
+  // === REFLEXIVE PRONOUN CHECKS ===
+  if (isReflexive) {
+    const reflexivePronouns = { tu: 'te', usted: 'se', nosotros: 'nos', vosotros: 'os', ustedes: 'se', ellos: 'se' };
+    const pronoun = reflexivePronouns[person];
+    const userHasPronoun = user.includes(pronoun);
+    const correctHasPronoun = correct.includes(pronoun);
+    
+    if (correctHasPronoun && !userHasPronoun) {
+      issues.push({
+        type: 'missing-reflexive',
+        icon: '🪞',
+        severity: 'critical',
+        title: 'Missing reflexive pronoun',
+        explanation: `This is a reflexive verb! You need the pronoun "<span class="text-amber-300 font-bold">${pronoun}</span>".`,
+        tip: tense === 'affCmd' 
+          ? `In affirmative commands, attach "${pronoun}" to the END: verb + ${pronoun}`
+          : `In ${TENSE_NAMES[tense].toLowerCase()}, put "${pronoun}" BEFORE the verb: ${pronoun} + verb`,
+        details: `The verb "${verb.infinitive}" requires reflexive pronoun for ${PERSONS[PERSON_KEYS.indexOf(person)]}`
+      });
+    } else if (userHasPronoun && correctHasPronoun) {
+      // Check pronoun placement
+      const userPronounAtStart = user.startsWith(pronoun + ' ') || user.startsWith('no ' + pronoun + ' ');
+      const userPronounAtEnd = user.endsWith(pronoun) || user.match(new RegExp(pronoun + '[aeiou]?s?$'));
+      const correctPronounAtStart = correct.startsWith(pronoun + ' ') || correct.startsWith('no ' + pronoun + ' ');
+      const correctPronounAtEnd = correct.endsWith(pronoun) || correct.match(new RegExp(pronoun + 'e?$'));
+      
+      if (tense === 'affCmd') {
+        if (userPronounAtStart && correctPronounAtEnd) {
+          issues.push({
+            type: 'reflexive-placement-wrong',
+            icon: '↔️',
+            severity: 'major',
+            title: 'Reflexive pronoun in wrong position',
+            explanation: 'In <span class="text-emerald-300">affirmative commands</span>, the pronoun attaches to the END of the verb, not before it.',
+            tip: `Move "${pronoun}" to the end and attach it directly: <span class="font-mono text-emerald-300">${correct}</span>`,
+            details: 'Affirmative: verbo + pronoun (attached) | Negative: no + pronoun + verbo (separate)'
+          });
+        }
+      } else {
+        if (userPronounAtEnd && correctPronounAtStart) {
+          issues.push({
+            type: 'reflexive-placement-wrong',
+            icon: '↔️',
+            severity: 'major',
+            title: 'Reflexive pronoun in wrong position',
+            explanation: `In <span class="text-indigo-300">${TENSE_NAMES[tense].toLowerCase()}</span>, the pronoun goes BEFORE the verb, not attached to it.`,
+            tip: `Put "${pronoun}" before the verb: <span class="font-mono text-emerald-300">${correct}</span>`,
+            details: 'Subjunctive/Negative: pronoun + verbo (separate) | Affirmative: verbo + pronoun (attached)'
+          });
+        }
+      }
+      
+      // Check for wrong pronoun
+      const otherPronouns = Object.values(reflexivePronouns).filter(p => p !== pronoun);
+      for (const wrongPronoun of otherPronouns) {
+        if (user.includes(wrongPronoun) && !correct.includes(wrongPronoun)) {
+          const wrongPerson = Object.entries(reflexivePronouns).find(([k, v]) => v === wrongPronoun);
+          issues.push({
+            type: 'wrong-reflexive-pronoun',
+            icon: '👤',
+            severity: 'major',
+            title: 'Wrong reflexive pronoun',
+            explanation: `You used "<span class="text-rose-300">${wrongPronoun}</span>" but ${PERSONS[PERSON_KEYS.indexOf(person)]} needs "<span class="text-emerald-300">${pronoun}</span>".`,
+            tip: `Reflexive pronouns: me (yo), te (tú), se (usted/él/ella), nos (nosotros), os (vosotros), se (ustedes/ellos)`
+          });
+          break;
+        }
+      }
+    }
+    
+    // Check for vosotros reflexive -d dropping
+    if (tense === 'affCmd' && person === 'vosotros') {
+      if (user.includes('dos') && !correct.includes('dos')) {
+        issues.push({
+          type: 'vosotros-d-not-dropped',
+          icon: '🇪🇸',
+          severity: 'major',
+          title: 'Vosotros reflexive: must drop -d',
+          explanation: 'When adding <span class="text-amber-300">-os</span> to vosotros commands, you must DROP the -d first.',
+          tip: 'Rule: infinitive → remove -r → add -d → but if reflexive, remove that -d before adding -os',
+          details: `Example: levantar → levantad → levanta<s>d</s> + os → levantaos (NOT levantados)`
+        });
+      }
+    }
+    
+    // Check nosotros -s dropping before -nos
+    if (tense === 'affCmd' && person === 'nosotros') {
+      if (user.includes('snos') || user.includes('mosnos')) {
+        issues.push({
+          type: 'nosotros-s-not-dropped',
+          icon: '✂️',
+          severity: 'major',
+          title: 'Nosotros reflexive: must drop -s',
+          explanation: 'When adding <span class="text-amber-300">-nos</span> to nosotros commands, drop the -s first.',
+          tip: 'Rule: subjunctive form → remove final -s → add -nos',
+          details: `Example: levantemos → levantemo<s>s</s> + nos → levantémonos`
+        });
+      }
+    }
+  }
+
+  // === ACCENT MARK CHECKS ===
+  const userNoAccents = stripAccents(user);
+  const correctNoAccents = stripAccents(correct);
+  
+  if (userNoAccents === correctNoAccents && user !== correct) {
+    const accentIssues = findDetailedAccentDifferences(user, correct);
+    issues.push({
+      type: 'accent',
+      icon: '🎯',
+      severity: 'minor',
+      title: 'Accent mark error',
+      explanation: 'Your answer has the right letters but wrong accent marks.',
+      tip: accentIssues.tip,
+      details: accentIssues.details
+    });
+  } else {
+    // Check for missing accents even when other things are wrong
+    const missingAccents = findMissingAccents(user, correct);
+    if (missingAccents.length > 0 && issues.length < 3) {
+      issues.push({
+        type: 'accent-also',
+        icon: '´',
+        severity: 'minor',
+        title: 'Also: accent mark needed',
+        explanation: `The correct form has accent(s): ${missingAccents.join(', ')}`,
+        tip: 'Spanish accents often fall on command forms when pronouns are attached, and on certain subjunctive endings.',
+        details: 'Use the accent buttons below the input or Alt+1-5 keyboard shortcuts'
+      });
+    }
+  }
+
+  // === STEM CHANGE CHECKS ===
+  if (meta.stemChange) {
+    const stemPatterns = {
+      'e→ie': { base: 'e', changed: 'ie', desc: 'e changes to ie' },
+      'o→ue': { base: 'o', changed: 'ue', desc: 'o changes to ue' },
+      'e→i': { base: 'e', changed: 'i', desc: 'e changes to i' },
+      'u→ue': { base: 'u', changed: 'ue', desc: 'u changes to ue' },
+      'e→ie/i': { base: 'e', changed: 'ie', secondary: 'i', desc: 'e changes to ie (or i for nosotros/vosotros)' }
+    };
+    const pattern = stemPatterns[meta.stemChange];
+    
+    if (pattern) {
+      const needsStemChange = !(person === 'nosotros' || person === 'vosotros') || meta.ending === '-ir';
+      const userHasChange = userNoAccents.includes(pattern.changed);
+      const correctHasChange = correctNoAccents.includes(pattern.changed);
+      
+      if (correctHasChange && !userHasChange && needsStemChange) {
+        issues.push({
+          type: 'stem-change-missing',
+          icon: '🔄',
+          severity: 'major',
+          title: `Missing stem change: ${meta.stemChange}`,
+          explanation: `This verb changes <span class="text-amber-300">${pattern.base}</span> → <span class="text-emerald-300">${pattern.changed}</span> in the stem.`,
+          tip: meta.ending === '-ir' 
+            ? 'For -IR verbs, stem change happens in ALL subjunctive forms (nosotros/vosotros may use secondary change).'
+            : 'Stem changes happen in all forms EXCEPT nosotros and vosotros for -AR/-ER verbs.',
+          details: `The stem must change from "${pattern.base}" to "${pattern.changed}" for ${PERSONS[PERSON_KEYS.indexOf(person)]}`
+        });
+      } else if (!correctHasChange && userHasChange && (person === 'nosotros' || person === 'vosotros') && meta.ending !== '-ir') {
+        issues.push({
+          type: 'stem-change-incorrect',
+          icon: '🔄',
+          severity: 'major',
+          title: 'Stem change should NOT apply here',
+          explanation: `For -AR and -ER verbs, <span class="text-amber-300">nosotros</span> and <span class="text-amber-300">vosotros</span> do NOT have stem changes.`,
+          tip: `Keep the original stem for these forms. Only yo, tú, él/ella/usted, ellos/ustedes change.`,
+          details: `You wrote "${user}" with the stem change, but ${person} keeps the original stem.`
+        });
+      }
+    }
+  }
+
+  // === SPELLING CHANGE CHECKS ===
+  if (meta.spelling) {
+    const spellingChanges = {
+      'c→zc': { 
+        patterns: [/([^z])c([ae])/gi], 
+        correct: 'zc',
+        desc: 'c → zc before a/e (to preserve soft c → th/s sound)',
+        example: 'conocer: conozca, conozcas...'
+      },
+      'g→gu': { 
+        patterns: [/([^u])g([ei])/gi], 
+        correct: 'gu',
+        desc: 'g → gu before e/i (to keep hard g sound)',
+        example: 'pagar: pague, pagues...'
+      },
+      'c→qu': { 
+        patterns: [/c([ei])/gi], 
+        correct: 'qu',
+        desc: 'c → qu before e/i (to keep hard c/k sound)',
+        example: 'buscar: busque, busques...'
+      },
+      'z→c': { 
+        patterns: [/z([ei])/gi], 
+        correct: 'c',
+        desc: 'z → c before e/i (Spanish spelling rule)',
+        example: 'empezar: empiece, empieces...'
+      },
+      'g→j': { 
+        patterns: [/g([ao])/gi], 
+        correct: 'j',
+        desc: 'g → j before a/o (to keep soft g/h sound)',
+        example: 'coger: coja, cojas...'
+      },
+      'i→y': { 
+        patterns: [/([aeo])i([aeo])/gi], 
+        correct: 'y',
+        desc: 'unstressed i → y between vowels',
+        example: 'leer: leyendo, creer: creyendo'
+      }
+    };
+    
+    const change = spellingChanges[meta.spelling];
+    if (change && userNoAccents !== correctNoAccents) {
+      // Check if user missed the spelling change
+      const correctHasChange = correct.includes(change.correct);
+      const userMissedChange = correctHasChange && !user.includes(change.correct);
+      
+      if (userMissedChange) {
+        issues.push({
+          type: 'spelling-change-missing',
+          icon: '✏️',
+          severity: 'major',
+          title: `Missing spelling change: ${meta.spelling}`,
+          explanation: `This verb requires: <span class="text-cyan-300">${change.desc}</span>`,
+          tip: 'Spelling changes preserve pronunciation. The SOUND stays the same, but letters change for the following vowel.',
+          details: `Example: ${change.example}`
+        });
+      }
+    }
+  }
+
+  // === ENDING CHECKS ===
+  const subjEndingsAR = { tu: 'es', usted: 'e', nosotros: 'emos', vosotros: 'éis', ustedes: 'en', ellos: 'en' };
+  const subjEndingsERIR = { tu: 'as', usted: 'a', nosotros: 'amos', vosotros: 'áis', ustedes: 'an', ellos: 'an' };
+  
+  if (tense === 'subjPres' && userNoAccents !== correctNoAccents) {
+    const expectedEndings = meta.ending === '-ar' ? subjEndingsAR : subjEndingsERIR;
+    const wrongEndings = meta.ending === '-ar' ? subjEndingsERIR : subjEndingsAR;
+    const expectedEnding = expectedEndings[person];
+    const wrongEnding = wrongEndings[person];
+    
+    if (stripAccents(user).endsWith(stripAccents(wrongEnding)) && !stripAccents(correct).endsWith(stripAccents(wrongEnding))) {
+      issues.push({
+        type: 'wrong-ending-type',
+        icon: '🔤',
+        severity: 'major',
+        title: 'Wrong subjunctive ending type',
+        explanation: `You used ${meta.ending === '-ar' ? '-ER/-IR' : '-AR'} endings on ${meta.ending === '-ar' ? 'an -AR' : 'an -ER/-IR'} verb.`,
+        tip: `Remember: subjunctive uses "OPPOSITE" endings!<br>• -AR verbs → use -e, -es, -e, -emos, -éis, -en<br>• -ER/-IR verbs → use -a, -as, -a, -amos, -áis, -an`,
+        details: `Expected ending for ${person}: <span class="text-emerald-300">-${expectedEnding}</span>, you used: <span class="text-rose-300">-${wrongEnding}</span>`
+      });
+    }
+  }
+
+  // === TÚ AFFIRMATIVE COMMAND CHECKS ===
+  if (tense === 'affCmd' && person === 'tu') {
+    const irregularTuCommands = {
+      'decir': 'di', 'hacer': 'haz', 'ir': 've', 'poner': 'pon',
+      'salir': 'sal', 'ser': 'sé', 'tener': 'ten', 'venir': 'ven'
+    };
+    const baseVerb = verb.infinitive.replace(/se$/, '');
+    
+    if (irregularTuCommands[baseVerb]) {
+      const irregularForm = irregularTuCommands[baseVerb];
+      if (!user.includes(irregularForm) && correct.includes(irregularForm)) {
+        issues.push({
+          type: 'irregular-tu-command',
+          icon: '⚡',
+          severity: 'critical',
+          title: 'Irregular tú command',
+          explanation: `"${baseVerb}" has an irregular tú command: <span class="text-amber-300 font-bold">${irregularForm}</span>`,
+          tip: 'Memorize the 8 irregular tú commands: <span class="font-mono">di, haz, ve, pon, sal, sé, ten, ven</span>',
+          details: 'These are the only irregular affirmative tú commands in Spanish'
+        });
+      }
+    }
+    
+    // Check if used subjunctive instead of indicative
+    const subjForm = verb.subjPres.tu.replace(/^te\s*/, '');
+    if (stripAccents(user) === stripAccents(subjForm.toLowerCase()) && userNoAccents !== correctNoAccents) {
+      issues.push({
+        type: 'tu-used-subjunctive',
+        icon: '🔀',
+        severity: 'major',
+        title: 'Used subjunctive for tú affirmative',
+        explanation: 'Tú <span class="text-emerald-300">affirmative</span> commands use the él/ella present <span class="text-amber-300">indicative</span>, NOT subjunctive.',
+        tip: 'This is the ONE exception: tú affirmative = él/ella present indicative. All other commands use subjunctive.',
+        details: `You wrote the subjunctive form. For tú affirmative, think "what does él/ella do?" → that's the command.`
+      });
+    }
+  }
+
+  // === VOSOTROS COMMAND CHECKS ===
+  if (tense === 'affCmd' && person === 'vosotros' && !isReflexive) {
+    if (!user.endsWith('d') && correct.endsWith('d')) {
+      issues.push({
+        type: 'vosotros-formation',
+        icon: '🇪🇸',
+        severity: 'major',
+        title: 'Vosotros command formation',
+        explanation: 'Vosotros affirmative commands: take infinitive, replace <span class="text-rose-300">-r</span> with <span class="text-emerald-300">-d</span>.',
+        tip: 'habla<s>r</s> → habla<span class="text-emerald-300">d</span> | come<s>r</s> → come<span class="text-emerald-300">d</span> | vivi<s>r</s> → vivi<span class="text-emerald-300">d</span>',
+        details: 'This is the simplest command form — just swap -r for -d!'
+      });
+    }
+  }
+
+  // === WRONG PERSON CHECK ===
+  const allPersonForms = verb[tense];
+  for (const [formPerson, formValue] of Object.entries(allPersonForms)) {
+    if (formPerson === person) continue;
+    
+    const formToCheck = tense === 'negCmd' ? 'no ' + formValue : formValue;
+    if (stripAccents(user) === stripAccents(formToCheck.toLowerCase())) {
+      issues.push({
+        type: 'wrong-person',
+        icon: '👥',
+        severity: 'major',
+        title: 'Right conjugation, wrong person!',
+        explanation: `You gave the form for <span class="text-rose-300">${PERSONS[PERSON_KEYS.indexOf(formPerson)]}</span> instead of <span class="text-emerald-300">${PERSONS[PERSON_KEYS.indexOf(person)]}</span>.`,
+        tip: 'Always double-check which person/subject is being asked for before answering.',
+        details: `Asked: ${PERSONS[PERSON_KEYS.indexOf(person)]} | You answered: ${PERSONS[PERSON_KEYS.indexOf(formPerson)]}`
+      });
+      break;
+    }
+  }
+
+  // === WRONG TENSE CHECK ===
+  const otherTenses = TENSES.filter(t => t !== tense);
+  for (const otherTense of otherTenses) {
+    const otherForm = verb[otherTense][person];
+    const otherFormFull = otherTense === 'negCmd' ? 'no ' + otherForm : otherForm;
+    
+    if (stripAccents(user) === stripAccents(otherFormFull.toLowerCase())) {
+      issues.push({
+        type: 'wrong-tense',
+        icon: '📋',
+        severity: 'major',
+        title: 'Used the wrong tense!',
+        explanation: `You gave the <span class="text-rose-300">${TENSE_NAMES[otherTense]}</span> form instead of <span class="text-emerald-300">${TENSE_NAMES[tense]}</span>.`,
+        tip: 'Check the colored badge at the top of the question card — it shows which tense is being asked.',
+        details: `Asked: ${TENSE_NAMES[tense]} | You gave: ${TENSE_NAMES[otherTense]}`
+      });
+      break;
+    }
+  }
+
+  // === INFINITIVE CHECK ===
+  const infinitive = verb.infinitive.toLowerCase();
+  const infinitiveNoSe = infinitive.replace(/se$/, '');
+  if (user === infinitive || user === infinitiveNoSe) {
+    issues.push({
+      type: 'used-infinitive',
+      icon: '📖',
+      severity: 'critical',
+      title: 'Used the infinitive (dictionary form)',
+      explanation: 'You entered the unconjugated infinitive instead of conjugating it.',
+      tip: 'You need to: 1) find the stem, 2) apply any changes, 3) add the correct ending for person and tense.',
+      details: `"${verb.infinitive}" is the infinitive. Conjugate it for ${PERSONS[PERSON_KEYS.indexOf(person)]} in ${TENSE_NAMES[tense]}.`
+    });
+  }
+
+  // === TYPO CHECK (only if no major issues found) ===
+  if (issues.filter(i => i.severity !== 'minor').length === 0) {
+    const distance = levenshteinDistance(userNoAccents, correctNoAccents);
+    if (distance > 0 && distance <= 2) {
+      issues.push({
+        type: 'typo',
+        icon: '⌨️',
+        severity: 'minor',
+        title: 'Possible typo',
+        explanation: 'Your answer is very close — might be a small spelling error.',
+        tip: 'Check each letter carefully.',
+        details: `Yours: <span class="text-rose-300 font-mono">${user}</span> | Correct: <span class="text-emerald-300 font-mono">${correct}</span>`
+      });
+    }
+  }
+
+  // === GENERAL IRREGULAR VERB NOTE ===
+  if (meta.type === 'irregular' && issues.length > 0 && !issues.some(i => i.type.includes('irregular'))) {
+    issues.push({
+      type: 'irregular-note',
+      icon: '⚡',
+      severity: 'info',
+      title: 'Note: This is an irregular verb',
+      explanation: meta.irregular ? `The yo form is: <span class="text-amber-300">${meta.irregular}</span>` : 'This verb has irregular forms that must be memorized.',
+      tip: 'Irregular yo forms become the stem for ALL subjunctive forms.',
+      details: meta.notes || ''
+    });
+  }
+
+  // If no issues found, return generic error
+  if (issues.length === 0) {
+    issues.push({
+      type: 'unknown',
+      icon: '❓',
+      severity: 'major',
+      title: 'Incorrect answer',
+      explanation: 'Your answer doesn\'t match the expected conjugation.',
+      tip: 'Review the conjugation rules in Learn mode, or check the verb reference.',
+      details: `Expected: <span class="font-mono text-emerald-300">${correct}</span> | You wrote: <span class="font-mono text-rose-300">${user}</span>`
+    });
+  }
+
+  // Sort by severity
+  const severityOrder = { critical: 0, major: 1, minor: 2, info: 3 };
+  issues.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+
+  return issues;
+}
+
+// Legacy wrapper for single-issue return (for history tracking)
+function analyzeMistake(userAnswer, correctAnswer, question) {
+  const issues = analyzeAllMistakes(userAnswer, correctAnswer, question);
+  return issues[0] || { type: 'unknown', icon: '❓', title: 'Unknown error' };
+}
+
+function findDetailedAccentDifferences(user, correct) {
+  const accentMap = { 'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u', 'ñ': 'n' };
+  const reverseMap = { 'a': 'á', 'e': 'é', 'i': 'í', 'o': 'ó', 'u': 'ú' };
+  let missing = [];
+  let extra = [];
+  
+  for (let i = 0; i < Math.max(user.length, correct.length); i++) {
+    const u = user[i] || '';
+    const c = correct[i] || '';
+    
+    if (u !== c) {
+      if (accentMap[c] === u) {
+        missing.push({ char: c, position: i + 1 });
+      } else if (accentMap[u] === c) {
+        extra.push({ char: u, position: i + 1 });
+      }
+    }
+  }
+  
+  let tip = '';
+  let details = '';
+  
+  if (missing.length > 0) {
+    tip += `Add accent(s): ${missing.map(m => `"${m.char}"`).join(', ')}. `;
+    details += `Missing: ${missing.map(m => `<span class="text-amber-300">${m.char}</span> at position ${m.position}`).join(', ')}. `;
+  }
+  if (extra.length > 0) {
+    tip += `Remove accent(s): ${extra.map(e => `"${e.char}" → "${accentMap[e.char]}"`).join(', ')}. `;
+    details += `Extra: ${extra.map(e => `<span class="text-rose-300">${e.char}</span> should be <span class="text-emerald-300">${accentMap[e.char]}</span>`).join(', ')}. `;
+  }
+  
+  if (!tip) tip = 'Check accent placement carefully.';
+  if (!details) details = `Yours: ${user} | Correct: ${correct}`;
+  
+  return { tip, details };
+}
+
+function findMissingAccents(user, correct) {
+  const accented = ['á', 'é', 'í', 'ó', 'ú'];
+  const missing = [];
+  
+  for (const char of correct) {
+    if (accented.includes(char) && !user.includes(char)) {
+      missing.push(char);
+    }
+  }
+  
+  return [...new Set(missing)];
+}
+
+function findAccentDifferences(user, correct) {
+  const accentMap = { 'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u' };
+  let tips = [];
+  
+  for (let i = 0; i < correct.length; i++) {
+    if (user[i] !== correct[i]) {
+      if (accentMap[correct[i]] === user[i]) {
+        tips.push(`Need accent on "${correct[i]}"`);
+      } else if (Object.values(accentMap).includes(correct[i]) && Object.keys(accentMap).includes(user[i])) {
+        tips.push(`Remove accent from "${user[i]}" → "${correct[i]}"`);
+      }
+    }
+  }
+  
+  return tips.length > 0 ? tips.join(', ') + '.' : 'Check accent placement carefully.';
+}
+
+function levenshteinDistance(a, b) {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function checkAnswer() {
+  if (answered) { nextQuestion(); return; }
+
+  const input = document.getElementById('answer-input');
+  let userAnswer = normalizeAnswer(input.value);
+  let correctAnswer = normalizeAnswer(currentQuestion.correctAnswer);
+
+  // For negative commands, user might type "no" prefix or not — we need the full form
+  // The correct answer already includes "no" prefix? No, it doesn't in our data.
+  // Let me handle: negCmd answers are stored WITHOUT "no" prefix, but user should include "no"
+  // Actually, let me check our data... The negCmd entries use subjunctive forms without "no".
+  // The user should type "no + subjunctive form" for negative commands.
+  let expectedDisplay = correctAnswer;
+  if (currentQuestion.tense === 'negCmd') {
+    correctAnswer = 'no ' + correctAnswer;
+    expectedDisplay = correctAnswer;
+  }
+
+  let isCorrect = false;
+  if (state.settings.strictAccents) {
+    isCorrect = userAnswer === correctAnswer;
+  } else {
+    isCorrect = stripAccents(userAnswer) === stripAccents(correctAnswer);
+  }
+
+  answered = true;
+  const q = currentQuestion;
+
+  // Record stats
+  state.totalAttempts++;
+  state.sessionTotal++;
+  if (isCorrect) {
+    state.totalCorrect++;
+    state.sessionCorrect++;
+    state.currentStreak++;
+    if (state.currentStreak > state.bestStreak) state.bestStreak = state.currentStreak;
+  } else {
+    state.currentStreak = 0;
+  }
+
+  // Verb stats
+  if (!state.verbStats[q.verb.infinitive]) state.verbStats[q.verb.infinitive] = { attempts: 0, correct: 0 };
+  state.verbStats[q.verb.infinitive].attempts++;
+  if (isCorrect) state.verbStats[q.verb.infinitive].correct++;
+
+  // Tense stats
+  if (!state.tenseStats[q.tense]) state.tenseStats[q.tense] = { attempts: 0, correct: 0 };
+  state.tenseStats[q.tense].attempts++;
+  if (isCorrect) state.tenseStats[q.tense].correct++;
+
+  // Combo stats
+  const comboKey = `${q.verb.infinitive}|${q.person.key}|${q.tense}`;
+  if (!state.comboStats[comboKey]) state.comboStats[comboKey] = { attempts: 0, correct: 0 };
+  state.comboStats[comboKey].attempts++;
+  if (isCorrect) state.comboStats[comboKey].correct++;
+
+  // Mastery tracking - mark as mastered when answered correctly
+  if (isCorrect && !state.mastery[comboKey]) {
+    state.mastery[comboKey] = true;
+    updateMasteryDisplay();
+  }
+
+  // Analyze mistake for history
+  let mistakeType = null;
+  if (!isCorrect) {
+    const mistake = analyzeMistake(userAnswer, expectedDisplay, q);
+    mistakeType = mistake.type;
+  }
+
+  // History (keep last 500)
+  state.history.push({
+    verb: q.verb.infinitive,
+    person: q.person.display,
+    tense: q.tense,
+    userAnswer: userAnswer,
+    correctAnswer: expectedDisplay,
+    correct: isCorrect,
+    mistakeType: mistakeType,
+    timestamp: Date.now()
+  });
+  if (state.history.length > 500) state.history = state.history.slice(-500);
+
+  saveToCookie();
+
+  // UI feedback
+  const icon = document.getElementById('input-icon');
+  if (isCorrect) {
+    input.className = 'w-full bg-emerald-900/30 border-2 border-emerald-400 rounded-xl px-4 py-3 text-center text-xl font-medium text-emerald-300 placeholder-white/30 transition glow-correct';
+    icon.textContent = '✓';
+    icon.style.opacity = '1';
+    icon.style.color = '#34d399';
+    if (state.settings.sound) playSound(true);
+    if (state.settings.confetti && state.currentStreak > 0 && state.currentStreak % 10 === 0) launchConfetti();
+  } else {
+    input.className = 'w-full bg-rose-900/30 border-2 border-rose-400 rounded-xl px-4 py-3 text-center text-xl font-medium text-rose-300 placeholder-white/30 transition glow-wrong shake';
+    icon.textContent = '✗';
+    icon.style.opacity = '1';
+    icon.style.color = '#f87171';
+    if (state.settings.sound) playSound(false);
+  }
+  input.disabled = true;
+
+  // Feedback text
+  const feedbackArea = document.getElementById('feedback-area');
+  const feedbackText = document.getElementById('feedback-text');
+  const correctDisplay = document.getElementById('correct-answer-display');
+  feedbackArea.classList.remove('hidden');
+  feedbackArea.classList.remove('fade-in');
+  void feedbackArea.offsetWidth;
+  feedbackArea.classList.add('fade-in');
+
+  if (isCorrect) {
+    const msgs = ["¡Correcto! 🎉", "¡Muy bien! ⭐", "¡Perfecto! 💪", "¡Excelente! 🌟", "¡Genial! 🔥"];
+    feedbackText.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+    feedbackText.className = 'text-lg font-medium text-emerald-400';
+    correctDisplay.innerHTML = '';
+  } else {
+    // Analyze ALL mistakes (multi-issue detection)
+    const allIssues = analyzeAllMistakes(userAnswer, expectedDisplay, q);
+    const primaryIssue = allIssues[0];
+    const additionalIssues = allIssues.slice(1, 4); // Show up to 3 additional issues
+    
+    feedbackText.innerHTML = `<span class="text-2xl mr-2">${primaryIssue.icon}</span> ${primaryIssue.title}`;
+    feedbackText.className = 'text-lg font-medium text-rose-400 flex items-center justify-center gap-1';
+    
+    const severityColors = {
+      critical: 'border-rose-500/40 bg-rose-500/10',
+      major: 'border-amber-500/30 bg-amber-500/5',
+      minor: 'border-blue-500/30 bg-blue-500/5',
+      info: 'border-indigo-500/30 bg-indigo-500/5'
+    };
+    
+    let issuesHTML = `
+      <div class="mt-3 text-left max-w-lg mx-auto space-y-2">
+        <!-- Primary Issue -->
+        <div class="p-3 rounded-lg ${severityColors[primaryIssue.severity] || severityColors.major} border">
+          <div class="flex items-start gap-2">
+            <span class="text-lg">${primaryIssue.icon}</span>
+            <div class="flex-1">
+              <p class="text-sm text-white/90 font-medium mb-1">${primaryIssue.explanation}</p>
+              <p class="text-xs text-white/60">💡 ${primaryIssue.tip}</p>
+              ${primaryIssue.details ? `<p class="text-xs text-white/40 mt-1 font-mono">${primaryIssue.details}</p>` : ''}
+            </div>
+          </div>
+        </div>
+    `;
+    
+    // Additional issues
+    if (additionalIssues.length > 0) {
+      issuesHTML += `
+        <div class="text-xs text-white/40 uppercase tracking-wider mt-2 mb-1">Also noted:</div>
+      `;
+      for (const issue of additionalIssues) {
+        issuesHTML += `
+          <div class="p-2 rounded-lg ${severityColors[issue.severity] || severityColors.minor} border flex items-start gap-2">
+            <span>${issue.icon}</span>
+            <div class="flex-1">
+              <p class="text-xs text-white/80">${issue.title}</p>
+              <p class="text-xs text-white/50">${issue.explanation}</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    // Answer comparison
+    issuesHTML += `
+        <div class="mt-3 pt-3 border-t border-white/10">
+          <div class="flex items-center justify-between text-sm">
+            <div>
+              <span class="text-white/40">Correct: </span>
+              <span class="text-emerald-400 font-semibold font-mono">${expectedDisplay}</span>
+            </div>
+            ${userAnswer ? `
+            <div>
+              <span class="text-white/40">Yours: </span>
+              <span class="text-rose-400/70 font-mono line-through">${userAnswer}</span>
+            </div>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    correctDisplay.innerHTML = issuesHTML;
+  }
+
+  // Buttons
+  document.getElementById('submit-btn').classList.add('hidden');
+  document.getElementById('next-btn').classList.remove('hidden');
+
+  updateDisplays();
+  updateRecentHistory();
+}
+
+function skipQuestion() {
+  if (answered) return;
+  // Record as skipped (incorrect)
+  const q = currentQuestion;
+  state.totalAttempts++;
+  state.sessionTotal++;
+  state.currentStreak = 0;
+
+  if (!state.verbStats[q.verb.infinitive]) state.verbStats[q.verb.infinitive] = { attempts: 0, correct: 0 };
+  state.verbStats[q.verb.infinitive].attempts++;
+
+  if (!state.tenseStats[q.tense]) state.tenseStats[q.tense] = { attempts: 0, correct: 0 };
+  state.tenseStats[q.tense].attempts++;
+
+  let expectedDisplay = q.correctAnswer;
+  if (q.tense === 'negCmd') expectedDisplay = 'no ' + q.correctAnswer;
+
+  state.history.push({
+    verb: q.verb.infinitive,
+    person: q.person.display,
+    tense: q.tense,
+    userAnswer: '(skipped)',
+    correctAnswer: expectedDisplay,
+    correct: false,
+    timestamp: Date.now()
+  });
+  if (state.history.length > 500) state.history = state.history.slice(-500);
+
+  saveToCookie();
+  updateDisplays();
+  updateRecentHistory();
+  showToast(`Skipped — answer was: ${expectedDisplay}`);
+  nextQuestion();
+}
+
+function nextQuestion() {
+  // Check session end
+  if (state.settings.sessionSize > 0 && state.sessionTotal >= state.settings.sessionSize) {
+    showSessionComplete();
+    return;
+  }
+  displayQuestion();
+}
+
+// ==================== SESSION COMPLETE ====================
+function showSessionComplete() {
+  const card = document.getElementById('question-card');
+  const acc = state.sessionTotal > 0 ? Math.round(state.sessionCorrect / state.sessionTotal * 100) : 0;
+  let grade = '🏆';
+  if (acc >= 90) grade = '🏆 Outstanding!';
+  else if (acc >= 75) grade = '⭐ Great job!';
+  else if (acc >= 60) grade = '💪 Good effort!';
+  else grade = '📚 Keep practicing!';
+
+  card.innerHTML = `
+    <div class="text-center fade-in py-8">
+      <div class="text-5xl mb-4">${acc >= 90 ? '🎉' : acc >= 60 ? '👏' : '💪'}</div>
+      <h2 class="text-2xl font-bold mb-2">Session Complete!</h2>
+      <p class="text-white/50 mb-6">${grade}</p>
+      <div class="grid grid-cols-3 gap-4 max-w-sm mx-auto mb-8">
+        <div class="bg-white/5 rounded-xl p-3">
+          <div class="text-2xl font-bold text-emerald-400">${state.sessionCorrect}</div>
+          <div class="text-xs text-white/40">Correct</div>
+        </div>
+        <div class="bg-white/5 rounded-xl p-3">
+          <div class="text-2xl font-bold text-rose-400">${state.sessionTotal - state.sessionCorrect}</div>
+          <div class="text-xs text-white/40">Incorrect</div>
+        </div>
+        <div class="bg-white/5 rounded-xl p-3">
+          <div class="text-2xl font-bold text-indigo-400">${acc}%</div>
+          <div class="text-xs text-white/40">Accuracy</div>
+        </div>
+      </div>
+      <button onclick="startNewSession()" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold text-white transition transform hover:scale-105">
+        New Session →
+      </button>
+    </div>
+  `;
+  if (state.settings.confetti && acc >= 80) launchConfetti();
+}
+
+function startNewSession() {
+  state.sessionCorrect = 0;
+  state.sessionTotal = 0;
+  // Rebuild question card
+  document.getElementById('question-card').innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <span id="tense-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"></span>
+      <button onclick="skipQuestion()" class="text-white/30 hover:text-white/60 text-sm transition flex items-center gap-1">Skip <span class="text-xs">→</span></button>
+    </div>
+    <div class="text-center mb-6">
+      <div class="text-3xl sm:text-4xl font-bold mb-2" id="verb-display"></div>
+      <div class="text-white/50 text-sm" id="verb-meaning"></div>
+    </div>
+    <div class="text-center mb-6">
+      <span class="text-lg text-amber-300 font-semibold" id="person-display"></span>
+    </div>
+    <div class="max-w-md mx-auto mb-4">
+      <div class="relative">
+        <input type="text" id="answer-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          class="w-full bg-white/10 border-2 border-white/20 rounded-xl px-4 py-3 text-center text-xl font-medium text-white placeholder-white/30 focus:border-indigo-400 transition"
+          placeholder="Type your answer..."
+          onkeydown="if(event.key==='Enter') checkAnswer()">
+        <div id="input-icon" class="absolute right-3 top-1/2 -translate-y-1/2 text-xl opacity-0 transition-opacity"></div>
+      </div>
+      <div class="flex justify-center gap-2 mt-3">
+        <button onclick="insertChar('á')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">á</button>
+        <button onclick="insertChar('é')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">é</button>
+        <button onclick="insertChar('í')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">í</button>
+        <button onclick="insertChar('ó')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">ó</button>
+        <button onclick="insertChar('ú')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">ú</button>
+        <button onclick="insertChar('ñ')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">ñ</button>
+        <button onclick="insertChar('ü')" class="accent-btn px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition">ü</button>
+      </div>
+    </div>
+    <div class="text-center">
+      <button onclick="checkAnswer()" id="submit-btn" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-semibold text-white transition transform hover:scale-105 active:scale-95">Check</button>
+      <button onclick="nextQuestion()" id="next-btn" class="hidden px-8 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-semibold text-white transition transform hover:scale-105 active:scale-95">Next →</button>
+    </div>
+    <div id="feedback-area" class="mt-4 text-center hidden fade-in">
+      <div id="feedback-text" class="text-lg font-medium"></div>
+      <div id="correct-answer-display" class="mt-1 text-white/50 text-sm"></div>
+    </div>
+  `;
+  updateDisplays();
+  displayQuestion();
+}
+
+// ==================== UI UPDATES ====================
+function updateDisplays() {
+  document.getElementById('display-streak').innerHTML = state.currentStreak + (state.currentStreak >= 3 ? ' <span class="streak-fire">🔥</span>' : '');
+  const ss = state.settings.sessionSize;
+  document.getElementById('display-session').textContent = ss > 0 ? `${state.sessionCorrect}/${state.sessionTotal}` : `${state.sessionCorrect}/${state.sessionTotal}`;
+  const acc = state.totalAttempts > 0 ? Math.round(state.totalCorrect / state.totalAttempts * 100) + '%' : '—';
+  document.getElementById('display-accuracy').textContent = acc;
+  document.getElementById('display-best-streak').textContent = state.bestStreak;
+
+}
+
+function updateRecentHistory() {
+  const container = document.getElementById('recent-history');
+  const recent = state.history.slice(-15).reverse();
+  if (recent.length === 0) {
+    container.innerHTML = '<div class="text-white/30 text-sm text-center py-4">No attempts yet — start practicing!</div>';
+    return;
+  }
+  
+  const mistakeIcons = {
+    'accent': '🎯', 'missing-no': '🚫', 'extra-no': '❌', 'missing-reflexive': '🪞',
+    'reflexive-placement': '↔️', 'stem-change-forgot': '🔄', 'stem-change-wrong': '🔄',
+    'spelling-change': '✏️', 'irregular': '⚡', 'indicative-not-subjunctive': '🔀',
+    'vosotros-command': '🇪🇸', 'vosotros-reflexive': '🇪🇸', 'irregular-tu-command': '⚡',
+    'tu-aff-wrong-form': '🔀', 'infinitive': '📖', 'wrong-person': '👥',
+    'typo': '⌨️', 'wrong-tense': '🔄', 'empty': '📝', 'unknown': '💭'
+  };
+  
+  container.innerHTML = recent.map(h => {
+    const icon = h.correct ? '✓' : '✗';
+    const color = h.correct ? 'text-emerald-400' : 'text-rose-400';
+    const bgColor = h.correct ? 'bg-emerald-500/5' : 'bg-rose-500/5';
+    const tenseName = TENSE_NAMES[h.tense] || h.tense;
+    const timeAgo = getTimeAgo(h.timestamp);
+    const mistakeIcon = !h.correct && h.mistakeType ? mistakeIcons[h.mistakeType] || '❓' : '';
+    const mistakeBadge = !h.correct && h.mistakeType && h.mistakeType !== 'unknown' 
+      ? `<span class="text-xs px-1.5 py-0.5 rounded bg-white/10 text-white/50 ml-1">${mistakeIcon} ${h.mistakeType.replace(/-/g, ' ')}</span>` 
+      : '';
+    
+    return `
+      <div class="flex items-center gap-3 ${bgColor} rounded-lg px-3 py-2 text-sm">
+        <span class="${color} font-bold text-base">${icon}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-medium text-white">${h.verb}</span>
+            <span class="text-white/30">·</span>
+            <span class="text-white/50">${h.person}</span>
+            <span class="text-white/30">·</span>
+            <span class="text-white/40 text-xs">${tenseName}</span>
+            ${mistakeBadge}
+          </div>
+          <div class="text-xs mt-0.5 ${h.correct ? 'text-emerald-400/70' : 'text-rose-400/70'}">
+            ${h.correct ? h.correctAnswer : `<span class="line-through text-rose-400/50">${h.userAnswer || '(empty)'}</span> → <span class="text-white/70">${h.correctAnswer}</span>`}
+          </div>
+        </div>
+        <span class="text-white/20 text-xs whitespace-nowrap">${timeAgo}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function getTimeAgo(ts) {
+  const diff = Date.now() - ts;
+  if (diff < 60000) return 'just now';
+  if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+  if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+  return Math.floor(diff/86400000) + 'd ago';
+}
+
+// ==================== STATS TAB ====================
+function updateStatsTab() {
+  document.getElementById('stat-total').textContent = state.totalAttempts;
+  document.getElementById('stat-correct').textContent = state.totalCorrect;
+  document.getElementById('stat-incorrect').textContent = state.totalAttempts - state.totalCorrect;
+  document.getElementById('stat-accuracy').textContent = state.totalAttempts > 0 ? Math.round(state.totalCorrect / state.totalAttempts * 100) + '%' : '—';
+  document.getElementById('stat-best-streak').textContent = state.bestStreak;
+  document.getElementById('stat-cur-streak').textContent = state.currentStreak;
+  
+  // Mastery stats
+  const masteryStats = getMasteryStats();
+  const total = VERBS.length * TENSES.length * PERSONS.length;
+  const perTense = VERBS.length * PERSONS.length;
+  const masteryPct = Math.round(masteryStats.total / total * 100);
+  
+  document.getElementById('stat-mastered').textContent = `${masteryStats.total} / ${total}`;
+  document.getElementById('stats-mastery-percentage').textContent = `${masteryPct}%`;
+  document.getElementById('stats-mastery-bar').style.width = `${masteryPct}%`;
+  
+  document.getElementById('stats-mastery-grid').innerHTML = `
+    <div class="text-center">
+      <div class="text-2xl font-bold text-indigo-400">${masteryStats.subjPres}</div>
+      <div class="text-xs text-white/40">Subjunctive</div>
+      <div class="text-xs text-white/30">${Math.round(masteryStats.subjPres/perTense*100)}%</div>
+    </div>
+    <div class="text-center">
+      <div class="text-2xl font-bold text-emerald-400">${masteryStats.affCmd}</div>
+      <div class="text-xs text-white/40">Aff. Commands</div>
+      <div class="text-xs text-white/30">${Math.round(masteryStats.affCmd/perTense*100)}%</div>
+    </div>
+    <div class="text-center">
+      <div class="text-2xl font-bold text-rose-400">${masteryStats.negCmd}</div>
+      <div class="text-xs text-white/40">Neg. Commands</div>
+      <div class="text-xs text-white/30">${Math.round(masteryStats.negCmd/perTense*100)}%</div>
+    </div>
+  `;
+
+  // By tense
+  const tenseContainer = document.getElementById('stats-by-tense');
+  tenseContainer.innerHTML = TENSES.map(t => {
+    const s = state.tenseStats[t] || { attempts: 0, correct: 0 };
+    const acc = s.attempts > 0 ? Math.round(s.correct / s.attempts * 100) : 0;
+    const tc = TENSE_COLORS[t];
+    return `
+      <div class="flex items-center justify-between">
+        <span class="${tc.text} text-sm font-medium">${TENSE_NAMES[t]}</span>
+        <div class="flex items-center gap-3">
+          <div class="w-24 bg-white/10 rounded-full h-2 overflow-hidden">
+            <div class="${tc.bg.replace('/20','')} h-full rounded-full" style="width:${acc}%;opacity:0.8"></div>
+          </div>
+          <span class="text-white/60 text-sm w-12 text-right">${s.attempts > 0 ? acc + '%' : '—'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Per-verb stats table
+  updateVerbStatsTable();
+
+  // Trouble spots
+  updateTroubleSpots();
+  
+  // Mistake patterns
+  updateMistakePatterns();
+}
+
+function updateVerbStatsTable() {
+  const tbody = document.getElementById('verb-stats-table');
+  let verbData = VERBS.map(v => {
+    const s = state.verbStats[v.infinitive] || { attempts: 0, correct: 0 };
+    const acc = s.attempts > 0 ? Math.round(s.correct / s.attempts * 100) : -1;
+    return { verb: v.infinitive, meaning: v.meaning, attempts: s.attempts, correct: s.correct, accuracy: acc };
+  });
+
+  // Sort
+  verbData.sort((a, b) => {
+    if (sortField === 'verb') return sortDir * a.verb.localeCompare(b.verb);
+    if (sortField === 'attempts') return sortDir * (a.attempts - b.attempts);
+    if (sortField === 'accuracy') return sortDir * (a.accuracy - b.accuracy);
+    return 0;
+  });
+
+  tbody.innerHTML = verbData.map(v => {
+    const accDisplay = v.accuracy >= 0 ? v.accuracy + '%' : '—';
+    const accColor = v.accuracy >= 80 ? 'text-emerald-400' : v.accuracy >= 50 ? 'text-amber-400' : v.accuracy >= 0 ? 'text-rose-400' : 'text-white/30';
+    const barColor = v.accuracy >= 80 ? 'bg-emerald-500' : v.accuracy >= 50 ? 'bg-amber-500' : 'bg-rose-500';
+    return `
+      <tr class="border-t border-white/5">
+        <td class="py-2 pr-4">
+          <div class="font-medium text-white">${v.verb}</div>
+          <div class="text-xs text-white/30 truncate max-w-[200px]">${v.meaning}</div>
+        </td>
+        <td class="py-2 pr-4 text-center text-white/60">${v.attempts}</td>
+        <td class="py-2 pr-4 text-center ${accColor} font-medium">${accDisplay}</td>
+        <td class="py-2">
+          <div class="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+            <div class="${barColor} h-full rounded-full transition-all" style="width:${Math.max(0, v.accuracy)}%"></div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function sortVerbStats(field) {
+  if (sortField === field) sortDir *= -1;
+  else { sortField = field; sortDir = 1; }
+  updateVerbStatsTable();
+}
+
+function updateTroubleSpots() {
+  const container = document.getElementById('trouble-spots');
+  const entries = Object.entries(state.comboStats)
+    .filter(([k, v]) => v.attempts >= 2 && v.correct / v.attempts < 0.5)
+    .sort((a, b) => (a[1].correct/a[1].attempts) - (b[1].correct/b[1].attempts))
+    .slice(0, 10);
+
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="text-white/30 text-sm text-center py-4">No trouble spots yet — keep practicing!</div>';
+    return;
+  }
+
+  container.innerHTML = entries.map(([key, stats]) => {
+    const [verb, person, tense] = key.split('|');
+    const acc = Math.round(stats.correct / stats.attempts * 100);
+    const personDisplay = PERSONS[PERSON_KEYS.indexOf(person)] || person;
+    return `
+      <div class="flex items-center justify-between bg-rose-500/5 rounded-lg px-3 py-2">
+        <div>
+          <span class="font-medium text-white">${verb}</span>
+          <span class="text-white/30 mx-1">·</span>
+          <span class="text-white/50">${personDisplay}</span>
+          <span class="text-white/30 mx-1">·</span>
+          <span class="text-white/40 text-xs">${TENSE_NAMES[tense]}</span>
+        </div>
+        <span class="text-rose-400 font-medium text-sm">${acc}% (${stats.correct}/${stats.attempts})</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateMistakePatterns() {
+  const container = document.getElementById('mistake-patterns');
+  
+  // Count mistake types from history
+  const mistakeCounts = {};
+  const recentHistory = state.history.slice(-100); // Last 100 attempts
+  
+  recentHistory.forEach(h => {
+    if (!h.correct && h.mistakeType) {
+      mistakeCounts[h.mistakeType] = (mistakeCounts[h.mistakeType] || 0) + 1;
+    }
+  });
+  
+  const totalMistakes = Object.values(mistakeCounts).reduce((a, b) => a + b, 0);
+  
+  if (totalMistakes === 0) {
+    container.innerHTML = '<div class="text-white/30 text-sm text-center py-4">No mistake patterns detected yet — keep practicing!</div>';
+    return;
+  }
+  
+  // Sort by frequency
+  const sortedMistakes = Object.entries(mistakeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+  
+  const mistakeInfo = {
+    'accent': { icon: '🎯', label: 'Accent Marks', color: 'amber', tip: 'Pay attention to accent marks — they affect pronunciation and meaning. Use the accent buttons or Alt+1-5.' },
+    'missing-no': { icon: '🚫', label: 'Missing "no"', color: 'rose', tip: 'Negative commands always need "no" before the verb. Structure: no + subjunctive form.' },
+    'extra-no': { icon: '❌', label: 'Extra "no"', color: 'rose', tip: 'Only negative commands use "no". Affirmative commands and subjunctive don\'t need it.' },
+    'missing-reflexive': { icon: '🪞', label: 'Missing Reflexive Pronoun', color: 'indigo', tip: 'Reflexive verbs need their pronoun (me, te, se, nos, os, se). Check if the infinitive ends in -se.' },
+    'reflexive-placement': { icon: '↔️', label: 'Reflexive Placement', color: 'indigo', tip: 'Affirmative commands: pronoun attaches to end. Negative/subjunctive: pronoun goes before verb.' },
+    'stem-change-forgot': { icon: '🔄', label: 'Forgot Stem Change', color: 'amber', tip: 'Watch for e→ie, o→ue, e→i changes. They affect most forms except (sometimes) nosotros/vosotros.' },
+    'stem-change-wrong': { icon: '🔄', label: 'Incorrect Stem Change', color: 'amber', tip: 'For -AR/-ER verbs, nosotros/vosotros do NOT have stem changes in subjunctive.' },
+    'spelling-change': { icon: '✏️', label: 'Spelling Change', color: 'cyan', tip: 'Remember: c→zc, g→gu, c→qu, z→c. These preserve pronunciation before certain vowels.' },
+    'irregular': { icon: '⚡', label: 'Irregular Verb', color: 'rose', tip: 'Some verbs are just irregular — the yo form carries through all subjunctive. Memorization required!' },
+    'indicative-not-subjunctive': { icon: '🔀', label: 'Used Indicative', color: 'purple', tip: 'You used present indicative endings instead of subjunctive. Remember: subjunctive uses "opposite" endings.' },
+    'vosotros-command': { icon: '🇪🇸', label: 'Vosotros Command', color: 'amber', tip: 'Vosotros affirmative: replace infinitive -r with -d. Example: hablar → hablad.' },
+    'vosotros-reflexive': { icon: '🇪🇸', label: 'Vosotros Reflexive', color: 'amber', tip: 'For reflexive vosotros commands, DROP the -d before -os: levantaos (not levantados).' },
+    'irregular-tu-command': { icon: '⚡', label: 'Irregular Tú Command', color: 'rose', tip: 'Memorize the 8 irregular tú commands: di, haz, ve, pon, sal, sé, ten, ven.' },
+    'tu-aff-wrong-form': { icon: '🔀', label: 'Tú Affirmative Form', color: 'purple', tip: 'Tú affirmative uses él/ella present indicative, NOT subjunctive. This is the exception!' },
+    'infinitive': { icon: '📖', label: 'Used Infinitive', color: 'gray', tip: 'You entered the dictionary form. You need to conjugate for the specific person and tense.' },
+    'wrong-person': { icon: '👥', label: 'Wrong Person', color: 'blue', tip: 'You conjugated correctly but for the wrong person. Double-check which subject is being asked.' },
+    'typo': { icon: '⌨️', label: 'Typos', color: 'gray', tip: 'Small spelling errors. Type carefully and double-check before submitting.' },
+    'wrong-tense': { icon: '🔄', label: 'Wrong Tense', color: 'purple', tip: 'Check the tense badge at the top of the question card before answering.' },
+    'empty': { icon: '📝', label: 'Empty Answer', color: 'gray', tip: 'Remember to type your answer before submitting!' },
+    'unknown': { icon: '💭', label: 'Other Errors', color: 'gray', tip: 'Review conjugation rules in Learn mode.' }
+  };
+  
+  container.innerHTML = `
+    <div class="grid gap-3 sm:grid-cols-2">
+      ${sortedMistakes.map(([type, count]) => {
+        const info = mistakeInfo[type] || { icon: '❓', label: type, color: 'gray', tip: '' };
+        const percentage = Math.round(count / totalMistakes * 100);
+        const colorClasses = {
+          amber: 'bg-amber-500/10 border-amber-500/30 text-amber-300',
+          rose: 'bg-rose-500/10 border-rose-500/30 text-rose-300',
+          indigo: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300',
+          cyan: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300',
+          purple: 'bg-purple-500/10 border-purple-500/30 text-purple-300',
+          blue: 'bg-blue-500/10 border-blue-500/30 text-blue-300',
+          gray: 'bg-white/5 border-white/20 text-white/60'
+        };
+        const colorClass = colorClasses[info.color] || colorClasses.gray;
+        
+        return `
+          <div class="rounded-xl border p-3 ${colorClass}">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">${info.icon}</span>
+                <span class="font-medium">${info.label}</span>
+              </div>
+              <span class="text-sm font-bold">${count}× (${percentage}%)</span>
+            </div>
+            <div class="w-full bg-black/20 rounded-full h-1.5 mb-2">
+              <div class="h-full rounded-full bg-current opacity-60" style="width: ${percentage}%"></div>
+            </div>
+            <p class="text-xs opacity-70">${info.tip}</p>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <p class="text-xs text-white/30 mt-3 text-center">Based on your last ${recentHistory.length} attempts (${totalMistakes} mistakes)</p>
+  `;
+}
+
+// ==================== VERB LIST TAB ====================
+function updateVerbList() {
+  const container = document.getElementById('verb-list-display');
+  container.innerHTML = VERBS.map(v => {
+    const s = state.verbStats[v.infinitive] || { attempts: 0, correct: 0 };
+    const acc = s.attempts > 0 ? Math.round(s.correct / s.attempts * 100) : -1;
+    const accBadge = acc >= 0
+      ? `<span class="px-2 py-0.5 rounded-full text-xs ${acc >= 80 ? 'bg-emerald-500/20 text-emerald-400' : acc >= 50 ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400'}">${acc}%</span>`
+      : '<span class="px-2 py-0.5 rounded-full text-xs bg-white/10 text-white/30">new</span>';
+
+    return `
+      <details class="group bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+        <summary class="px-4 py-3 cursor-pointer flex items-center justify-between hover:bg-white/5 transition">
+          <div>
+            <span class="font-semibold text-white">${v.infinitive}</span>
+            <span class="text-white/40 ml-2 text-sm">— ${v.meaning}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            ${accBadge}
+            <span class="text-white/30 group-open:rotate-90 transition-transform">▶</span>
+          </div>
+        </summary>
+        <div class="px-4 pb-4 pt-2 border-t border-white/5">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div>
+              <h4 class="text-indigo-300 font-semibold mb-2 text-xs uppercase tracking-wider">Present Subjunctive</h4>
+              <div class="space-y-1 text-white/70">
+                ${PERSONS.map((p, i) => `<div><span class="text-white/40 w-20 inline-block">${p}:</span> ${v.subjPres[PERSON_KEYS[i]]}</div>`).join('')}
+              </div>
+            </div>
+            <div>
+              <h4 class="text-emerald-300 font-semibold mb-2 text-xs uppercase tracking-wider">Aff. Commands</h4>
+              <div class="space-y-1 text-white/70">
+                ${PERSONS.map((p, i) => `<div><span class="text-white/40 w-20 inline-block">${p}:</span> ${v.affCmd[PERSON_KEYS[i]]}</div>`).join('')}
+              </div>
+            </div>
+            <div>
+              <h4 class="text-rose-300 font-semibold mb-2 text-xs uppercase tracking-wider">Neg. Commands</h4>
+              <div class="space-y-1 text-white/70">
+                ${PERSONS.map((p, i) => `<div><span class="text-white/40 w-20 inline-block">${p}:</span> no ${v.negCmd[PERSON_KEYS[i]]}</div>`).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+    `;
+  }).join('');
+}
+
+// ==================== TABS ====================
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  document.getElementById('tab-' + name).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(el => {
+    el.classList.remove('bg-indigo-600');
+    el.classList.add('text-white/60');
+  });
+  document.getElementById('btn-' + name).classList.add('bg-indigo-600');
+  document.getElementById('btn-' + name).classList.remove('text-white/60');
+
+  if (name === 'stats') updateStatsTab();
+  if (name === 'verbs') updateVerbList();
+  if (name === 'learn') updateLearnContent();
+  if (name === 'practice') {
+    setTimeout(() => {
+      const input = document.getElementById('answer-input');
+      if (input) input.focus();
+    }, 100);
+  }
+}
+
+// ==================== SETTINGS ====================
+function saveSettings() {
+  state.settings.sessionSize = parseInt(document.getElementById('setting-session-size').value);
+  state.settings.strictAccents = document.getElementById('setting-strict-accents').checked;
+  state.settings.showMeaning = document.getElementById('setting-show-meaning').checked;
+  state.settings.weighted = document.getElementById('setting-weighted').checked;
+  state.settings.sound = document.getElementById('setting-sound').checked;
+  state.settings.confetti = document.getElementById('setting-confetti').checked;
+  saveToCookie();
+  showToast('Settings saved');
+}
+
+function loadSettings() {
+  document.getElementById('setting-session-size').value = state.settings.sessionSize;
+  document.getElementById('setting-strict-accents').checked = state.settings.strictAccents;
+  document.getElementById('setting-show-meaning').checked = state.settings.showMeaning;
+  document.getElementById('setting-weighted').checked = state.settings.weighted;
+  document.getElementById('setting-sound').checked = state.settings.sound;
+  document.getElementById('setting-confetti').checked = state.settings.confetti;
+}
+
+// ==================== EXPORT / IMPORT ====================
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `conjugador_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Data exported successfully');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      state = { ...state, ...data };
+      if (data.settings) state.settings = { ...state.settings, ...data.settings };
+      saveToCookie();
+      loadSettings();
+      updateDisplays();
+      updateRecentHistory();
+      showToast('Data imported successfully!');
+    } catch(err) {
+      showToast('Error: Invalid file format');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function confirmReset() {
+  if (confirm('Are you sure you want to reset ALL data? This cannot be undone.')) {
+    state = {
+      currentStreak: 0, bestStreak: 0, sessionCorrect: 0, sessionTotal: 0,
+      totalCorrect: 0, totalAttempts: 0, history: [],
+      verbStats: {}, tenseStats: {}, comboStats: {}, mastery: {},
+      settings: state.settings
+    };
+    saveToCookie();
+    initializeQueue();
+    updateDisplays();
+    updateMasteryDisplay();
+    updateRecentHistory();
+    showToast('All data has been reset');
+  }
+}
+
+function confirmResetMastery() {
+  if (confirm('Reset mastery progress? Your stats and history will be kept, but all combinations will be marked as unmastered.')) {
+    state.mastery = {};
+    saveToCookie();
+    initializeQueue();
+    updateMasteryDisplay();
+    showToast('Mastery progress has been reset');
+  }
+}
+
+// ==================== HELPERS ====================
+function insertChar(ch) {
+  const input = document.getElementById('answer-input');
+  if (!input || input.disabled) return;
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+  const val = input.value;
+  input.value = val.substring(0, start) + ch + val.substring(end);
+  input.selectionStart = input.selectionEnd = start + ch.length;
+  input.focus();
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.remove('opacity-0', 'translate-y-4');
+  toast.classList.add('opacity-100', 'translate-y-0');
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-4');
+    toast.classList.remove('opacity-100', 'translate-y-0');
+  }, 2500);
+}
+
+// ==================== SOUND ====================
+function playSound(correct) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.value = 0.1;
+
+    if (correct) {
+      osc.frequency.value = 523.25; // C5
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+
+      // Second note
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.frequency.value = 659.25; // E5
+      osc2.type = 'sine';
+      gain2.gain.setValueAtTime(0.1, ctx.currentTime + 0.1);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+      osc2.start(ctx.currentTime + 0.1);
+      osc2.stop(ctx.currentTime + 0.4);
+    } else {
+      osc.frequency.value = 200;
+      osc.type = 'sawtooth';
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.3);
+    }
+  } catch(e) {}
+}
+
+// ==================== CONFETTI ====================
+function launchConfetti() {
+  const colors = ['#f43f5e', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = '-10px';
+    el.style.width = Math.random() * 10 + 5 + 'px';
+    el.style.height = Math.random() * 10 + 5 + 'px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    el.style.animationDuration = (Math.random() * 1.5 + 1) + 's';
+    el.style.animationDelay = Math.random() * 0.5 + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+}
+
+// ==================== KEYBOARD SHORTCUTS ====================
+document.addEventListener('keydown', function(e) {
+  // Alt+1-7 for accent chars
+  const accentChars = ['á', 'é', 'í', 'ó', 'ú', 'ñ', 'ü'];
+  if (e.altKey && e.key >= '1' && e.key <= '7') {
+    e.preventDefault();
+    insertChar(accentChars[parseInt(e.key) - 1]);
+  }
+  // Ctrl+S to skip
+  if (e.ctrlKey && e.key === 's') {
+    e.preventDefault();
+    skipQuestion();
+  }
+});
+
+// ==================== LEARN MODE ====================
+function setLearnTense(tense) {
+  currentLearnTense = tense;
+  
+  // Update button styles
+  document.querySelectorAll('.learn-tense-btn').forEach(btn => {
+    btn.classList.remove('bg-indigo-600', 'bg-emerald-600', 'bg-rose-600', 'border-indigo-500', 'border-emerald-500', 'border-rose-500');
+    btn.classList.add('bg-white/5', 'text-white/60', 'border-white/10');
+  });
+  
+  const activeBtn = document.getElementById(`learn-btn-${tense}`);
+  const colors = {
+    subjPres: { bg: 'bg-indigo-600', border: 'border-indigo-500', text: 'text-white' },
+    affCmd: { bg: 'bg-emerald-600', border: 'border-emerald-500', text: 'text-white' },
+    negCmd: { bg: 'bg-rose-600', border: 'border-rose-500', text: 'text-white' }
+  };
+  activeBtn.classList.remove('bg-white/5', 'text-white/60', 'border-white/10');
+  activeBtn.classList.add(colors[tense].bg, colors[tense].border, colors[tense].text);
+  
+  updateLearnContent();
+}
+
+function updateLearnContent() {
+  updateTenseOverview();
+  updateEndingsTable();
+  updateLearnVerbList();
+}
+
+function updateTenseOverview() {
+  const container = document.getElementById('learn-tense-overview');
+  const tense = currentLearnTense;
+  
+  const overviews = {
+    subjPres: {
+      title: "Present Subjunctive (Presente de Subjuntivo)",
+      color: "indigo",
+      icon: "🎯",
+      description: "The subjunctive mood expresses wishes, doubts, emotions, possibilities, and hypothetical situations. It's triggered by specific phrases and conjunctions.",
+      formation: [
+        "1. Start with the <strong>yo form</strong> of the present indicative",
+        "2. Drop the <strong>-o</strong> ending to get the stem",
+        "3. Add the <strong>'opposite' endings</strong>: -ar verbs take -er/-ir endings, and vice versa"
+      ],
+      triggers: [
+        "Wishes/Desires: <em>Quiero que...</em>, <em>Espero que...</em>",
+        "Emotions: <em>Me alegra que...</em>, <em>Temo que...</em>",
+        "Doubt: <em>Dudo que...</em>, <em>No creo que...</em>",
+        "Impersonal: <em>Es importante que...</em>, <em>Es posible que...</em>",
+        "Conjunctions: <em>para que</em>, <em>antes de que</em>, <em>a menos que</em>"
+      ],
+      tips: [
+        "💡 If the yo form is irregular, that irregularity carries through ALL subjunctive forms",
+        "💡 Stem changes (e→ie, o→ue) do NOT occur in nosotros/vosotros for -ar/-er verbs",
+        "💡 For -ir stem-changers, nosotros/vosotros use a secondary change (e→i, o→u)"
+      ]
+    },
+    affCmd: {
+      title: "Affirmative Commands (Mandatos Afirmativos)",
+      color: "emerald",
+      icon: "✅",
+      description: "Affirmative commands tell someone TO DO something. Each grammatical person has different formation rules.",
+      formation: [
+        "<strong>Tú:</strong> Use the él/ella form of present indicative (habla, come, vive)",
+        "<strong>Usted:</strong> Use present subjunctive form (hable, coma, viva)",
+        "<strong>Nosotros:</strong> Use present subjunctive form (hablemos, comamos, vivamos)",
+        "<strong>Vosotros:</strong> Replace infinitive -r with -d (hablad, comed, vivid)",
+        "<strong>Ustedes:</strong> Use present subjunctive form (hablen, coman, vivan)"
+      ],
+      triggers: [],
+      tips: [
+        "💡 Tú has 8 irregular forms: di, haz, ve, pon, sal, sé, ten, ven",
+        "💡 Reflexive pronouns ATTACH to the end: levántate, siéntese",
+        "💡 Vosotros reflexive: drop -d before -os (levantaos, NOT levantados)",
+        "💡 Nosotros reflexive: drop -s before -nos (levantémonos)",
+        "💡 Add accent marks to maintain original stress when attaching pronouns"
+      ]
+    },
+    negCmd: {
+      title: "Negative Commands (Mandatos Negativos)",
+      color: "rose",
+      icon: "🚫",
+      description: "Negative commands tell someone NOT TO DO something. They ALL use present subjunctive forms with 'no' before the verb.",
+      formation: [
+        "1. Use <strong>'no'</strong> before the verb",
+        "2. Use the <strong>present subjunctive</strong> form for ALL persons",
+        "3. Reflexive pronouns go <strong>BEFORE</strong> the verb (not attached)"
+      ],
+      triggers: [],
+      tips: [
+        "💡 ALL negative commands use subjunctive - much simpler than affirmative!",
+        "💡 Word order: no + (reflexive pronoun) + verb",
+        "💡 Example: No te levantes (Don't get up) vs. Levántate (Get up)",
+        "💡 This is why learning subjunctive well helps with commands too"
+      ]
+    }
+  };
+  
+  const o = overviews[tense];
+  const borderColor = tense === 'subjPres' ? 'border-indigo-500/30' : tense === 'affCmd' ? 'border-emerald-500/30' : 'border-rose-500/30';
+  const bgGradient = tense === 'subjPres' ? 'from-indigo-500/10 to-purple-500/10' : tense === 'affCmd' ? 'from-emerald-500/10 to-teal-500/10' : 'from-rose-500/10 to-pink-500/10';
+  
+  container.className = `bg-gradient-to-br ${bgGradient} border ${borderColor} rounded-2xl p-6 mb-6`;
+  
+  container.innerHTML = `
+    <div class="flex items-start gap-4 mb-4">
+      <span class="text-3xl">${o.icon}</span>
+      <div>
+        <h3 class="text-xl font-bold mb-1">${o.title}</h3>
+        <p class="text-white/60 text-sm">${o.description}</p>
+      </div>
+    </div>
+    
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <h4 class="font-semibold text-white/80 mb-2 flex items-center gap-2">
+          <span class="text-lg">🔧</span> How to Form
+        </h4>
+        <ol class="space-y-2 text-sm text-white/70">
+          ${o.formation.map(f => `<li class="flex gap-2"><span class="text-white/40">→</span><span>${f}</span></li>`).join('')}
+        </ol>
+      </div>
+      
+      ${o.triggers.length > 0 ? `
+      <div>
+        <h4 class="font-semibold text-white/80 mb-2 flex items-center gap-2">
+          <span class="text-lg">⚡</span> Trigger Phrases
+        </h4>
+        <ul class="space-y-1 text-sm text-white/70">
+          ${o.triggers.map(t => `<li class="flex gap-2"><span class="text-white/40">•</span><span>${t}</span></li>`).join('')}
+        </ul>
+      </div>
+      ` : ''}
+    </div>
+    
+    <div class="mt-4 pt-4 border-t border-white/10">
+      <h4 class="font-semibold text-white/80 mb-2 flex items-center gap-2">
+        <span class="text-lg">💡</span> Key Tips
+      </h4>
+      <div class="grid sm:grid-cols-2 gap-2">
+        ${o.tips.map(t => `<div class="text-sm text-white/60 bg-white/5 rounded-lg px-3 py-2">${t}</div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function updateEndingsTable() {
+  const container = document.getElementById('learn-endings-table');
+  const tense = currentLearnTense;
+  
+  if (tense === 'subjPres') {
+    container.innerHTML = `
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h5 class="font-semibold text-amber-300 mb-3">-AR Verbs → Use -ER endings</h5>
+          <table class="w-full text-sm">
+            <thead><tr class="text-white/40"><th class="text-left pb-2">Person</th><th class="text-left pb-2">Ending</th><th class="text-left pb-2">Example (hablar)</th></tr></thead>
+            <tbody class="text-white/70">
+              <tr><td class="py-1">yo</td><td class="text-indigo-300 font-mono">-e</td><td>habl<span class="text-indigo-300 font-bold">e</span></td></tr>
+              <tr><td class="py-1">tú</td><td class="text-indigo-300 font-mono">-es</td><td>habl<span class="text-indigo-300 font-bold">es</span></td></tr>
+              <tr><td class="py-1">él/usted</td><td class="text-indigo-300 font-mono">-e</td><td>habl<span class="text-indigo-300 font-bold">e</span></td></tr>
+              <tr><td class="py-1">nosotros</td><td class="text-indigo-300 font-mono">-emos</td><td>habl<span class="text-indigo-300 font-bold">emos</span></td></tr>
+              <tr><td class="py-1">vosotros</td><td class="text-indigo-300 font-mono">-éis</td><td>habl<span class="text-indigo-300 font-bold">éis</span></td></tr>
+              <tr><td class="py-1">ellos/ustedes</td><td class="text-indigo-300 font-mono">-en</td><td>habl<span class="text-indigo-300 font-bold">en</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h5 class="font-semibold text-cyan-300 mb-3">-ER/-IR Verbs → Use -AR endings</h5>
+          <table class="w-full text-sm">
+            <thead><tr class="text-white/40"><th class="text-left pb-2">Person</th><th class="text-left pb-2">Ending</th><th class="text-left pb-2">Example (comer)</th></tr></thead>
+            <tbody class="text-white/70">
+              <tr><td class="py-1">yo</td><td class="text-cyan-300 font-mono">-a</td><td>com<span class="text-cyan-300 font-bold">a</span></td></tr>
+              <tr><td class="py-1">tú</td><td class="text-cyan-300 font-mono">-as</td><td>com<span class="text-cyan-300 font-bold">as</span></td></tr>
+              <tr><td class="py-1">él/usted</td><td class="text-cyan-300 font-mono">-a</td><td>com<span class="text-cyan-300 font-bold">a</span></td></tr>
+              <tr><td class="py-1">nosotros</td><td class="text-cyan-300 font-mono">-amos</td><td>com<span class="text-cyan-300 font-bold">amos</span></td></tr>
+              <tr><td class="py-1">vosotros</td><td class="text-cyan-300 font-mono">-áis</td><td>com<span class="text-cyan-300 font-bold">áis</span></td></tr>
+              <tr><td class="py-1">ellos/ustedes</td><td class="text-cyan-300 font-mono">-an</td><td>com<span class="text-cyan-300 font-bold">an</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mt-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+        <h5 class="font-semibold text-amber-300 mb-2">⚠️ Common Irregularities to Watch</h5>
+        <div class="grid sm:grid-cols-3 gap-4 text-sm">
+          <div>
+            <span class="text-white/50">Spelling Changes:</span>
+            <ul class="text-white/70 mt-1">
+              <li>• -car → -que (buscar → busque)</li>
+              <li>• -gar → -gue (pagar → pague)</li>
+              <li>• -zar → -ce (empezar → empiece)</li>
+              <li>• -cer/-cir → -zca (conocer → conozca)</li>
+              <li>• -ger/-gir → -ja (coger → coja)</li>
+              <li>• -guir → -ga (seguir → siga)</li>
+            </ul>
+          </div>
+          <div>
+            <span class="text-white/50">Stem Changes:</span>
+            <ul class="text-white/70 mt-1">
+              <li>• e→ie: pensar → piense</li>
+              <li>• o→ue: poder → pueda</li>
+              <li>• e→i: pedir → pida (all forms)</li>
+              <li>• -ir verbs: special nosotros/vosotros</li>
+            </ul>
+          </div>
+          <div>
+            <span class="text-white/50">Completely Irregular:</span>
+            <ul class="text-white/70 mt-1">
+              <li>• ser → sea, seas, sea...</li>
+              <li>• ir → vaya, vayas, vaya...</li>
+              <li>• haber → haya, hayas...</li>
+              <li>• saber → sepa, sepas...</li>
+              <li>• estar → esté, estés...</li>
+              <li>• dar → dé, des, dé...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (tense === 'affCmd') {
+    container.innerHTML = `
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-white/40 border-b border-white/10">
+              <th class="text-left pb-3 pr-4">Person</th>
+              <th class="text-left pb-3 pr-4">-AR (hablar)</th>
+              <th class="text-left pb-3 pr-4">-ER (comer)</th>
+              <th class="text-left pb-3 pr-4">-IR (vivir)</th>
+              <th class="text-left pb-3">Rule</th>
+            </tr>
+          </thead>
+          <tbody class="text-white/70">
+            <tr class="border-b border-white/5">
+              <td class="py-2 pr-4 font-medium text-white">Tú</td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">habla</span></td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">come</span></td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">vive</span></td>
+              <td class="py-2 text-white/50 text-xs">él/ella present indicative form</td>
+            </tr>
+            <tr class="border-b border-white/5">
+              <td class="py-2 pr-4 font-medium text-white">Usted</td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">hable</span></td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">coma</span></td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">viva</span></td>
+              <td class="py-2 text-white/50 text-xs">Present subjunctive form</td>
+            </tr>
+            <tr class="border-b border-white/5">
+              <td class="py-2 pr-4 font-medium text-white">Nosotros</td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">hablemos</span></td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">comamos</span></td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">vivamos</span></td>
+              <td class="py-2 text-white/50 text-xs">Present subjunctive form ("Let's...")</td>
+            </tr>
+            <tr class="border-b border-white/5">
+              <td class="py-2 pr-4 font-medium text-white">Vosotros</td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">habla<span class="text-amber-300">d</span></span></td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">come<span class="text-amber-300">d</span></span></td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">vivi<span class="text-amber-300">d</span></span></td>
+              <td class="py-2 text-white/50 text-xs">Replace -r with -d</td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-medium text-white">Ustedes</td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">hablen</span></td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">coman</span></td>
+              <td class="py-2 pr-4"><span class="text-emerald-300">vivan</span></td>
+              <td class="py-2 text-white/50 text-xs">Present subjunctive form</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+        <h5 class="font-semibold text-amber-300 mb-2">⚠️ Irregular TÚ Commands (Memorize These!)</h5>
+        <div class="grid grid-cols-4 sm:grid-cols-8 gap-2 text-sm">
+          <div class="bg-white/5 rounded-lg p-2 text-center"><div class="text-white/50 text-xs">decir</div><div class="text-emerald-300 font-bold">di</div></div>
+          <div class="bg-white/5 rounded-lg p-2 text-center"><div class="text-white/50 text-xs">hacer</div><div class="text-emerald-300 font-bold">haz</div></div>
+          <div class="bg-white/5 rounded-lg p-2 text-center"><div class="text-white/50 text-xs">ir</div><div class="text-emerald-300 font-bold">ve</div></div>
+          <div class="bg-white/5 rounded-lg p-2 text-center"><div class="text-white/50 text-xs">poner</div><div class="text-emerald-300 font-bold">pon</div></div>
+          <div class="bg-white/5 rounded-lg p-2 text-center"><div class="text-white/50 text-xs">salir</div><div class="text-emerald-300 font-bold">sal</div></div>
+          <div class="bg-white/5 rounded-lg p-2 text-center"><div class="text-white/50 text-xs">ser</div><div class="text-emerald-300 font-bold">sé</div></div>
+          <div class="bg-white/5 rounded-lg p-2 text-center"><div class="text-white/50 text-xs">tener</div><div class="text-emerald-300 font-bold">ten</div></div>
+          <div class="bg-white/5 rounded-lg p-2 text-center"><div class="text-white/50 text-xs">venir</div><div class="text-emerald-300 font-bold">ven</div></div>
+        </div>
+      </div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="text-center p-6 bg-rose-500/5 rounded-xl border border-rose-500/20 mb-4">
+        <p class="text-lg text-white/80 mb-2">Negative commands are <strong class="text-rose-300">simpler</strong> than affirmative!</p>
+        <p class="text-white/50">Just use <span class="text-rose-300 font-mono font-bold">no</span> + <span class="text-indigo-300">present subjunctive</span> for ALL persons.</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-white/40 border-b border-white/10">
+              <th class="text-left pb-3 pr-4">Person</th>
+              <th class="text-left pb-3 pr-4">-AR (hablar)</th>
+              <th class="text-left pb-3 pr-4">-ER (comer)</th>
+              <th class="text-left pb-3">-IR (vivir)</th>
+            </tr>
+          </thead>
+          <tbody class="text-white/70">
+            <tr class="border-b border-white/5">
+              <td class="py-2 pr-4 font-medium text-white">Tú</td>
+              <td class="py-2 pr-4"><span class="text-rose-300">no</span> habl<span class="text-indigo-300">es</span></td>
+              <td class="py-2 pr-4"><span class="text-rose-300">no</span> com<span class="text-indigo-300">as</span></td>
+              <td class="py-2"><span class="text-rose-300">no</span> viv<span class="text-indigo-300">as</span></td>
+            </tr>
+            <tr class="border-b border-white/5">
+              <td class="py-2 pr-4 font-medium text-white">Usted</td>
+              <td class="py-2 pr-4"><span class="text-rose-300">no</span> habl<span class="text-indigo-300">e</span></td>
+              <td class="py-2 pr-4"><span class="text-rose-300">no</span> com<span class="text-indigo-300">a</span></td>
+              <td class="py-2"><span class="text-rose-300">no</span> viv<span class="text-indigo-300">a</span></td>
+            </tr>
+            <tr class="border-b border-white/5">
+              <td class="py-2 pr-4 font-medium text-white">Nosotros</td>
+              <td class="py-2 pr-4"><span class="text-rose-300">no</span> habl<span class="text-indigo-300">emos</span></td>
+              <td class="py-2 pr-4"><span class="text-rose-300">no</span> com<span class="text-indigo-300">amos</span></td>
+              <td class="py-2"><span class="text-rose-300">no</span> viv<span class="text-indigo-300">amos</span></td>
+            </tr>
+            <tr class="border-b border-white/5">
+              <td class="py-2 pr-4 font-medium text-white">Vosotros</td>
+              <td class="py-2 pr-4"><span class="text-rose-300">no</span> habl<span class="text-indigo-300">éis</span></td>
+              <td class="py-2 pr-4"><span class="text-rose-300">no</span> com<span class="text-indigo-300">áis</span></td>
+              <td class="py-2"><span class="text-rose-300">no</span> viv<span class="text-indigo-300">áis</span></td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-medium text-white">Ustedes</td>
+              <td class="py-2 pr-4"><span class="text-rose-300">no</span> habl<span class="text-indigo-300">en</span></td>
+              <td class="py-2 pr-4"><span class="text-rose-300">no</span> com<span class="text-indigo-300">an</span></td>
+              <td class="py-2"><span class="text-rose-300">no</span> viv<span class="text-indigo-300">an</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+        <h5 class="font-semibold text-indigo-300 mb-2">💡 Reflexive Verbs in Negative Commands</h5>
+        <p class="text-sm text-white/70 mb-2">Reflexive pronouns go <strong>BEFORE</strong> the verb in negative commands:</p>
+        <div class="grid sm:grid-cols-2 gap-2 text-sm">
+          <div class="bg-white/5 rounded-lg p-2">
+            <span class="text-white/50">Affirmative:</span> <span class="text-emerald-300">Levántate</span> (Get up)
+          </div>
+          <div class="bg-white/5 rounded-lg p-2">
+            <span class="text-white/50">Negative:</span> <span class="text-rose-300">No</span> <span class="text-amber-300">te</span> levantes (Don't get up)
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function updateLearnVerbList() {
+  const container = document.getElementById('learn-verb-list');
+  const filter = document.getElementById('learn-verb-filter').value;
+  const tense = currentLearnTense;
+  
+  const filteredVerbs = VERBS.filter(v => {
+    const meta = VERB_TYPES[v.infinitive] || { type: 'regular' };
+    if (filter === 'all') return true;
+    if (filter === 'regular') return meta.type === 'regular';
+    if (filter === 'stem-change') return meta.type === 'stem-change';
+    if (filter === 'spelling-change') return meta.type === 'spelling-change';
+    if (filter === 'irregular') return meta.type === 'irregular';
+    if (filter === 'reflexive') return meta.reflexive || meta.type === 'reflexive' || v.infinitive.endsWith('se');
+    if (filter === 'phrase') return meta.type === 'phrase';
+    return true;
+  });
+  
+  if (filteredVerbs.length === 0) {
+    container.innerHTML = '<p class="text-white/40 text-center py-8">No verbs match this filter.</p>';
+    return;
+  }
+  
+  container.innerHTML = filteredVerbs.map(v => {
+    const meta = VERB_TYPES[v.infinitive] || { type: 'regular', ending: '-ar', notes: 'Regular verb.' };
+    const isReflexive = meta.reflexive || meta.type === 'reflexive' || v.infinitive.endsWith('se');
+    
+    // Determine badge color
+    let badgeClass = 'bg-gray-500/20 text-gray-300';
+    let badgeText = meta.type;
+    if (meta.type === 'regular') badgeClass = 'bg-emerald-500/20 text-emerald-300';
+    else if (meta.type === 'stem-change') { badgeClass = 'bg-amber-500/20 text-amber-300'; badgeText = meta.stemChange || 'stem-change'; }
+    else if (meta.type === 'spelling-change') { badgeClass = 'bg-cyan-500/20 text-cyan-300'; badgeText = meta.spelling || 'spelling'; }
+    else if (meta.type === 'irregular') badgeClass = 'bg-rose-500/20 text-rose-300';
+    else if (meta.type === 'phrase') badgeClass = 'bg-purple-500/20 text-purple-300';
+    else if (meta.type === 'reflexive') badgeClass = 'bg-indigo-500/20 text-indigo-300';
+    
+    // Build explanation based on tense and verb type
+    const explanation = buildVerbExplanation(v, meta, tense);
+    
+    return `
+      <details class="group bg-white/5 rounded-xl border border-white/10 overflow-hidden hover:border-white/20 transition">
+        <summary class="px-4 py-3 cursor-pointer flex items-center justify-between">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="font-semibold text-white">${v.infinitive}</span>
+            <span class="px-2 py-0.5 rounded-full text-xs ${badgeClass}">${badgeText}</span>
+            ${isReflexive && meta.type !== 'reflexive' ? '<span class="px-2 py-0.5 rounded-full text-xs bg-indigo-500/20 text-indigo-300">reflexive</span>' : ''}
+            <span class="text-white/40 text-sm hidden sm:inline">— ${v.meaning}</span>
+          </div>
+          <span class="text-white/30 group-open:rotate-90 transition-transform text-sm">▶</span>
+        </summary>
+        <div class="px-4 pb-4 pt-2 border-t border-white/5">
+          <p class="text-white/50 text-sm mb-3 sm:hidden">${v.meaning}</p>
+          
+          <!-- Explanation -->
+          <div class="bg-gradient-to-r from-white/5 to-transparent rounded-lg p-3 mb-4">
+            <h5 class="text-sm font-semibold text-white/70 mb-2">📖 How to Conjugate</h5>
+            <div class="text-sm text-white/60 space-y-1">${explanation}</div>
+          </div>
+          
+          <!-- Conjugation Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-white/40 text-left">
+                  <th class="pb-2 pr-4">Person</th>
+                  <th class="pb-2">${TENSE_NAMES[tense]}</th>
+                </tr>
+              </thead>
+              <tbody class="text-white/70">
+                ${PERSONS.map((p, i) => {
+                  const form = v[tense][PERSON_KEYS[i]];
+                  let displayForm = form;
+                  if (tense === 'negCmd') displayForm = 'no ' + form;
+                  return `<tr class="border-t border-white/5"><td class="py-1.5 pr-4 text-white/50">${p}</td><td class="py-1.5 font-mono text-white">${displayForm}</td></tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Notes -->
+          <div class="mt-3 text-xs text-white/40 bg-white/5 rounded-lg px-3 py-2">
+            💡 ${meta.notes}
+          </div>
+        </div>
+      </details>
+    `;
+  }).join('');
+}
+
+function buildVerbExplanation(verb, meta, tense) {
+  const inf = verb.infinitive;
+  const isReflexive = meta.reflexive || meta.type === 'reflexive' || inf.endsWith('se');
+  let lines = [];
+  
+  if (tense === 'subjPres') {
+    // Present Subjunctive explanation
+    if (meta.type === 'regular') {
+      const ending = meta.ending;
+      const stem = inf.replace(/ar$|er$|ir$|arse$|erse$|irse$/, '');
+      lines.push(`<p>1. Take infinitive: <span class="text-amber-300">${inf}</span></p>`);
+      lines.push(`<p>2. Find yo form (regular): <span class="text-amber-300">${stem}o</span></p>`);
+      lines.push(`<p>3. Drop -o, get stem: <span class="text-emerald-300">${stem}</span></p>`);
+      if (ending === '-ar') {
+        lines.push(`<p>4. Add "opposite" (-ER) endings: <span class="text-indigo-300">-e, -es, -e, -emos, -éis, -en</span></p>`);
+      } else {
+        lines.push(`<p>4. Add "opposite" (-AR) endings: <span class="text-indigo-300">-a, -as, -a, -amos, -áis, -an</span></p>`);
+      }
+    } else if (meta.type === 'stem-change') {
+      lines.push(`<p>1. This verb has a <span class="text-amber-300">${meta.stemChange}</span> stem change</p>`);
+      lines.push(`<p>2. The change occurs in <span class="text-rose-300">all forms EXCEPT nosotros/vosotros</span> (for -ar/-er verbs)</p>`);
+      if (meta.ending === '-ir') {
+        lines.push(`<p>3. For -IR verbs: nosotros/vosotros use secondary change (e→i or o→u)</p>`);
+      }
+      lines.push(`<p>4. Apply the "opposite" endings after the stem change</p>`);
+    } else if (meta.type === 'spelling-change') {
+      lines.push(`<p>1. This verb has a <span class="text-cyan-300">${meta.spelling}</span> spelling change</p>`);
+      lines.push(`<p>2. This change happens to preserve pronunciation before 'e' or 'a'</p>`);
+      lines.push(`<p>3. The irregular yo form carries through ALL subjunctive forms</p>`);
+    } else if (meta.type === 'irregular') {
+      lines.push(`<p>1. <span class="text-rose-300">Irregular verb</span> — memorization required!</p>`);
+      if (meta.irregular) {
+        lines.push(`<p>2. Yo form: <span class="text-amber-300">${meta.irregular}</span> → this stem is used for subjunctive</p>`);
+      }
+      lines.push(`<p>3. Apply standard subjunctive endings to the irregular stem</p>`);
+    } else if (meta.type === 'phrase') {
+      lines.push(`<p>1. This is a <span class="text-purple-300">verb phrase</span> — conjugate only the verb part</p>`);
+      lines.push(`<p>2. The additional word(s) stay the same</p>`);
+      if (meta.irregular) {
+        lines.push(`<p>3. Base verb "${meta.irregular}" may be irregular</p>`);
+      }
+    }
+    
+    if (isReflexive) {
+      lines.push(`<p>5. <span class="text-indigo-300">Reflexive:</span> Add pronoun BEFORE verb (me, te, se, nos, os, se)</p>`);
+    }
+  } else if (tense === 'affCmd') {
+    lines.push(`<p><strong class="text-emerald-300">Affirmative Command Formation:</strong></p>`);
+    lines.push(`<p>• <span class="text-white">Tú:</span> Use él/ella present indicative (or irregular form)</p>`);
+    lines.push(`<p>• <span class="text-white">Usted:</span> Use present subjunctive</p>`);
+    lines.push(`<p>• <span class="text-white">Nosotros:</span> Use present subjunctive ("Let's...")</p>`);
+    lines.push(`<p>• <span class="text-white">Vosotros:</span> Replace -r with -d</p>`);
+    lines.push(`<p>• <span class="text-white">Ustedes:</span> Use present subjunctive</p>`);
+    
+    if (isReflexive) {
+      lines.push(`<p><span class="text-amber-300">⚠️ Reflexive:</span> Pronoun attaches to END (add accent if needed!)</p>`);
+      lines.push(`<p>• Vosotros: Drop -d before -os (e.g., levanta<s>d</s>os → levantaos)</p>`);
+      lines.push(`<p>• Nosotros: Drop -s before -nos (e.g., levantemo<s>s</s>nos → levantémonos)</p>`);
+    }
+  } else if (tense === 'negCmd') {
+    lines.push(`<p><strong class="text-rose-300">Negative Command Formation:</strong></p>`);
+    lines.push(`<p>Much simpler! Just use <span class="text-rose-300 font-bold">no</span> + <span class="text-indigo-300">present subjunctive</span></p>`);
+    lines.push(`<p>This works the same for ALL persons (tú, usted, nosotros, vosotros, ustedes)</p>`);
+    
+    if (isReflexive) {
+      lines.push(`<p><span class="text-amber-300">⚠️ Reflexive:</span> Pronoun goes BEFORE the verb</p>`);
+      lines.push(`<p>Example: <span class="text-rose-300">No</span> <span class="text-indigo-300">te</span> levantes (Don't get up)</p>`);
+    }
+  }
+  
+  return lines.join('');
+}
+
+// ==================== INIT ====================
+function init() {
+  loadFromStorage();
+  loadSettings();
+  // Initialize the question queue
+  initializeQueue();
+  updateDisplays();
+  updateMasteryDisplay();
+  updateRecentHistory();
+  displayQuestion();
+  // Initialize learn mode content
+  updateLearnContent();
+}
+
+init();
+</script>
+</body>
